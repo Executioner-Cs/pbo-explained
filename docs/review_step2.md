@@ -27,10 +27,9 @@ Script experiments/null_checks.py, output results/null_checks.txt. N = 100, T = 
 ## 4. Run it yourself
 ```
 .venv\Scripts\python.exe -m pytest -q                       # expect all pass
-.venv\Scripts\python.exe experiments\check_paper_values.py  # needs papers/; expect ALL TEXT CHECKS PASS
 .venv\Scripts\python.exe experiments\null_checks.py         # about 30 s; expect results/null_checks.txt unchanged
 ```
 
 ## Sign-off
-- TODO 2.4 null checks approved: ______  date: ______
-- TODO 2.21 step 2 signed off:   ______  date: ______
+- TODO 2.4 null checks approved: Mayo (project owner)  date: 2026-11-10
+- TODO 2.21 step 2 signed off:   Mayo (project owner)  date: 2026-11-10

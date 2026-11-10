@@ -43,7 +43,7 @@ AB|CD, AC|BD, AD|BC, BC|AD, BD|AC, CD|AB.
 ## Paper inconsistencies to flag
 - p.11: "if S = 16, we will form 12,780 combinations". C(16, 8) = 12,870. Typo in the paper. RESOLVED:
   code counts by Eq. 2.3; test_paper_s16_count_is_a_typo asserts 12,870 and != the printed 12,780;
-  check_paper_values.py confirms 12,780 is what p.11 prints.
+  the page review (docs/paper_check.md) confirms 12,780 is what p.11 prints.
 - p.25: grid "[0,...,10] for Stop_loss" is 11 values, so 22 x 20 x 11 x 2 = 9,680, not the 8,800 printed.
 - p.26: says "(1.54 vs. 1.3)" but p.25 gives the first Sharpe as 1.27.
 - p.28 summary says "underperforms the mean OOS" (extracted text, not seen as image). Def 2.2 says median.

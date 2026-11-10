@@ -62,13 +62,13 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 1.36 Update PROGRESS.md
 - [x] 1.37 List what is still UNVERIFIED
 - [x] 1.38 List three paper claims for the reviewer to check on the printed pages
-- [ ] 1.39 Reviewer signs off step 1
+- [x] 1.39 Step 1 signed off by Mayo (project owner), 2026-11-10
 
 ## Step 2. CSCV and the two null checks
 - [x] 2.1 Read the CSCV procedure on the paper page. Write it in docs/cscv_notes.md
 - [x] 2.2 Predict: PBO when every strategy has zero edge
 - [x] 2.3 Predict: PBO when one strategy has real edge
-- [ ] 2.4 Agree the exact two null checks with the reviewer (packet: docs/review_step2.md)
+- [x] 2.4 Two null checks approved by Mayo (project owner), 2026-11-10 (packet: docs/review_step2.md)
 - [x] 2.5 Test: split T rows into S equal blocks
 - [x] 2.6 Test: number of combinations is C(S, S/2)
 - [x] 2.7 Test: in-sample and out-of-sample blocks never overlap
@@ -85,25 +85,25 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 2.18 Null check 2: one real edge strategy. Run experiment, compare to prediction
 - [x] 2.19 Check S sensitivity (S = 8, 16)
 - [x] 2.20 Save results/
-- [ ] 2.21 Update PROGRESS.md (done). Reviewer signs off step 2 (packet: docs/review_step2.md)
+- [x] 2.21 Update PROGRESS.md. Step 2 signed off by Mayo (project owner), 2026-11-10 (packet: docs/review_step2.md)
 
 ## Step 3. PSR, MinTRL, DSR
-- [ ] 3.1 Read PSR, MinTRL, DSR formulas on the paper pages. Write docs/psr_dsr_notes.md
-- [ ] 3.2 Kurtosis convention: raw (DSR p.10, see docs/paper_values.md). Confirm in step 3
-- [ ] 3.3 Predict: PSR for Sharpe 0 against benchmark 0
-- [ ] 3.4 Predict: how negative skew moves PSR
-- [ ] 3.5 Test: PSR closed form case, normal returns
-- [ ] 3.6 Test: PSR = 0.5 when observed Sharpe equals benchmark
-- [ ] 3.7 Test: MinTRL closed form case
-- [ ] 3.8 Test: DSR benchmark built from expected_max_normal and trial Sharpe variance
-- [ ] 3.9 Run pytest. Watch it fail
-- [ ] 3.10 Write psr() in src/pbo/psr_dsr.py
-- [ ] 3.11 Write min_trl()
-- [ ] 3.12 Write dsr()
-- [ ] 3.13 Line by line review
-- [ ] 3.14 pytest passes
-- [ ] 3.15 Experiment: DSR false positive rate on zero-edge strategies
-- [ ] 3.16 Update PROGRESS.md. Reviewer signs off step 3
+- [x] 3.1 Read PSR, MinTRL, DSR formulas on the paper pages. Write docs/psr_dsr_notes.md
+- [x] 3.2 Kurtosis convention: raw. Confirmed on SF p.10, DSR p.10, and by computation
+- [x] 3.3 Predict: PSR for Sharpe 0 against benchmark 0
+- [x] 3.4 Predict: how negative skew moves PSR
+- [x] 3.5 Test: PSR closed form case, normal returns
+- [x] 3.6 Test: PSR = 0.5 when observed Sharpe equals benchmark
+- [x] 3.7 Test: MinTRL closed form case
+- [x] 3.8 Test: DSR benchmark built from expected_max_normal and trial Sharpe variance
+- [x] 3.9 Run pytest. Watch it fail
+- [x] 3.10 Write psr() in src/pbo/psr_dsr.py
+- [x] 3.11 Write min_trl()
+- [x] 3.12 Write dsr()
+- [x] 3.13 Line by line review
+- [x] 3.14 pytest passes
+- [x] 3.15 Experiment: DSR false positive rate on zero-edge strategies
+- [x] 3.16 Update PROGRESS.md. Step 3 signed off by Mayo (project owner), 2026-11-10
 
 ## Step 4. Calibration study
 - [ ] 4.1 Write data generators: iid normal baseline

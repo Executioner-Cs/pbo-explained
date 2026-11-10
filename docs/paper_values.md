@@ -30,11 +30,15 @@ Bailey, Lopez de Prado. "The Deflated Sharpe Ratio". J. Portfolio Management, 20
 | q = 250 | 10 | 250 observations per year in the example | PERIODS_PER_YEAR |
 | Example inputs | 9 | N = 100, V[{SR_n}] = 1/2, T = 1250, skew -3, kurt 10 | DSR_EX_N, DSR_EX_V_ANNUAL |
 | Example SR0 | 10 | sqrt(1/(2*250)) * E[max_100] ~ 0.1132, non-annualized | test_dsr_example_sr0 |
-| Example DSR (step 3) | 10 | SR 2.5 annual, T = 1250, skew -3, kurt 10, N = 100, V = 1/2: DSR ~ 0.9004 | not yet |
-| Example DSR (step 3) | 10 | Same but N = 46: DSR = 0.9505 | not yet |
-| Example DSR (step 3) | 10 | Normal returns (skew 0, kurt 3), N = 88: DSR = 0.9505 | not yet |
-| Kurtosis convention (step 3) | 10 | Denominator uses (kurt - 1)/4 with kurt = 3 for normal: raw kurtosis, not excess | TODO 3.2 answered |
-| T in DSR (step 3) | 10 | Uses sqrt(T - 1) = sqrt(1249) | not yet |
+| Example DSR (step 3) | 10 | SR 2.5 annual, T = 1250, skew -3, kurt 10, N = 100, V = 1/2: DSR ~ 0.9004 | tests/test_psr_dsr.py |
+| Example DSR (step 3) | 10 | Same but N = 46: DSR = 0.9505 | tests/test_psr_dsr.py |
+| Example DSR (step 3) | 10 | Normal returns (skew 0, kurt 3), N = 88: DSR = 0.9505 | tests/test_psr_dsr.py |
+| Kurtosis convention (step 3) | 10 | Denominator uses (kurt - 1)/4 with kurt = 3 for normal: raw kurtosis, not excess | TODO 3.2 closed |
+| T in DSR (step 3) | 10 | Uses sqrt(T - 1) = sqrt(1249) | tests/test_psr_dsr.py |
+
+## SF: papers/sharpe-frontier.pdf
+PSR (Eq. 11, p.9), MinTRL (Eq. 13, p.11) and their worked examples (pp.10-11): see docs/psr_dsr_notes.md
+and src/pbo/paper_values.py (PSR_EX_*, MINTRL_EX_*).
 
 ## Claims from the original brief that the papers do NOT support
 - "about 2 years for N = 7": not found in PSEUDO text. Dropped from tests.

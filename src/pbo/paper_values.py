@@ -8,6 +8,11 @@ PSEUDO = papers/backtest-pseudo.pdf
     author copy dated April 1, 2014 (journal version: Notices of the AMS 61(5), 2014).
 DSR = papers/deflated-sharpe.pdf
     Bailey, Lopez de Prado, "The Deflated Sharpe Ratio", J. Portfolio Management, 2014.
+PBO = papers/backtest-prob.pdf
+    Bailey, Borwein, Lopez de Prado, Zhu, "The Probability of Backtest Overfitting".
+SF = papers/sharpe-frontier.pdf
+    Bailey, Lopez de Prado, "The Sharpe Ratio Efficient Frontier", J. of Risk, 2012.
+Verification record: docs/paper_check.md.
 """
 
 # DSR p.10, numerical example: 250 observations per year (daily data).
@@ -25,7 +30,8 @@ MINBTL_YEARS = 5
 MINBTL_MAX_N = 45
 MINBTL_TARGET = 1
 
-# DSR p.9, numerical example inputs: N = 100, V[{SR_n}] = 1/2 (annualized), T = 1250.
+# DSR p.9, numerical example inputs: N = 100, V[{SR_n}] = 1/2, T = 1250. p.9 does not say "annualized";
+# that follows from p.10 dividing V by 250 (sqrt(1/(2*250))).
 # DSR p.10: SR0 = sqrt(1/(2*250)) * E[max_100] ~= 0.1132 (non-annualized, 250 observations per year).
 DSR_EX_N = 100
 DSR_EX_V_ANNUAL = 0.5
@@ -56,5 +62,47 @@ PBO_FIG1_SPLITS = (
 PBO_S16 = 16
 PBO_S16_PRINTED = 12780
 
-# PBO p.25: "a time series of 1,000 daily prices (about 4 years)" in both worked examples.
+# PBO pp.25-26: "1,000 daily prices (about 4 years)" in both worked examples (first p.25, second p.26).
 PBO_EX_T = 1000
+
+# SF = papers/sharpe-frontier.pdf. Bailey, Lopez de Prado, "The Sharpe Ratio Efficient Frontier", J. of Risk, 2012.
+# SF pp.9-10, PSR example: hedge fund, "monthly track record over the last two years" (p.9).
+# Non-annualized monthly SR 0.458. PSR(0) = 0.982 if Normal (skew 0, kurt 3), 0.913 with skew -2.448 and
+# kurt 10.164, and 0.953 with 3 years instead of 2 (p.10).
+PSR_EX_PPY = 12                 # monthly (pp.9-10 say monthly; 12 per year is the calendar).
+# The paper never prints n; n = 2 * 12 = 24 is inferred.
+PSR_EX_YEARS = 2
+PSR_EX_YEARS_LONG = 3
+PSR_EX_SR = 0.458
+PSR_EX_SKEW = -2.448
+PSR_EX_KURT = 10.164
+PSR_EX_NORMAL = 0.982
+PSR_EX_NON_NORMAL = 0.913
+PSR_EX_LONG = 0.953
+PSR_EX_TOL = 0.0005            # half a unit in the last printed digit
+
+# SF p.11, MinTRL examples at 95% confidence, IID Normal returns: annual SR 2 against SR* 1 needs
+# 2.73 years daily, 2.83 weekly, 3.24 monthly. Monthly with HFR skew -0.72 and kurt 5.78: 4.99 years.
+MINTRL_EX_SR_ANNUAL = 2
+MINTRL_EX_SR_STAR_ANNUAL = 1
+MINTRL_EX_CONFIDENCE = 0.95
+MINTRL_EX_YEARS_DAILY = 2.73
+MINTRL_EX_YEARS_WEEKLY = 2.83
+MINTRL_EX_YEARS_MONTHLY = 3.24
+MINTRL_EX_HFR_SKEW = -0.72
+MINTRL_EX_HFR_KURT = 5.78
+MINTRL_EX_YEARS_HFR = 4.99
+MINTRL_EX_TOL = 0.005          # half a unit in the last printed digit
+
+# DSR p.9, numerical example: annualized SR 2.5 over a daily sample of 5 years, T = 1250, skew -3, kurt 10.
+# DSR p.10: DSR ~= 0.9004 at N = 100; 0.9505 at N = 46; Normal returns (skew 0, kurt 3) give 0.9505 at N = 88.
+DSR_EX_SR_ANNUAL = 2.5
+DSR_EX_T = 1250
+DSR_EX_SKEW = -3
+DSR_EX_KURT = 10
+DSR_EX_DSR = 0.9004
+DSR_EX_N_ALT = 46
+DSR_EX_DSR_ALT = 0.9505
+DSR_EX_N_NORMAL = 88
+DSR_EX_DSR_NORMAL = 0.9505
+DSR_EX_DSR_TOL = 0.00005       # half a unit in the last printed digit

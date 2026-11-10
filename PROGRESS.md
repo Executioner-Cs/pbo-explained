@@ -2,16 +2,18 @@
 
 ## Done
 - Setup: PROGRESS.md, .gitignore, pyproject.toml.
-- Packages installed: numpy, scipy, pytest, pypdf (for check_paper_values.py). matplotlib installed, not used yet. Exact pins in requirements.txt.
+- Packages installed: numpy, scipy, pytest. matplotlib installed, not used yet. Exact pins in requirements.txt.
 - 2026-11-10: deleted experiments/check_oracle.py and docs/oracle_step1.md. Their numbers were typed in, and some are not in the paper.
 - 2026-11-10: all paper numbers now live in src/pbo/paper_values.py, each with page and equation. Tests and experiments import from there.
 - sharpe() in src/pbo/sharpe.py: 4 tests pass (closed form, ddof=0, scale invariance, zero variance raises).
 - expected_max_normal() and min_btl_years() in src/pbo/minbtl.py, tested against paper values. Suite at end of step 1: 31 passed.
-- 2026-11-10: experiments/check_paper_values.py opens each PDF and confirms every constant in paper_values.py is on its cited page. 13 pass by text. 5 sit in equation images or Figure 1: Mayo checked them by eye on 2026-11-10, all match. Fails on any constant it does not know. Local only (needs papers/).
+- 2026-11-10: paper constants are verified by a page-by-page review of rendered PDF pages, recorded in docs/paper_check.md.
+  The earlier text-search script (experiments/check_paper_values.py) was removed at Mayo's request: it could not read
+  values inside equation images.
 - experiments/best_of_n.py: 2000 trials, 5 years daily, seed 20261109. Output in results/best_of_n.txt.
 - Step 1 code complete. Awaiting reviewer sign-off (task 1.39).
 
-## Step 2 (in progress)
+## Step 2 (done)
 - src/pbo/cscv.py: Algorithm 2.3 and Sec 3.1 of the PBO paper. tests/test_cscv.py. Notes in docs/cscv_notes.md.
 - 2026-11-10 review by two read-only checks: formulas match the paper pages; no unlabelled numbers left.
   Fixed: DSR example inputs cited on p.9 (was p.10), lambda <= 0 note corrected, zero variance now raises in cscv.
@@ -24,6 +26,38 @@
   Null check output unchanged after the tie change (continuous data has no ties).
 - Suite: 61 passed.
 - Open: reviewer approval of the null checks (2.4) and step 2 sign-off (2.21). Packet: docs/review_step2.md.
+
+## Step 3 (done)
+- src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.
+- tests/test_psr_dsr.py: all paper examples (SF pp.10-11, DSR pp.9-10) plus closed forms and bad-input guards. Suite: 90 passed.
+- Kurtosis is raw (TODO 3.2 closed).
+- Results, experiments/dsr_false_positives.py, RECOMPUTED:
+
+| Check | Result | Mayo said | Verdict |
+|---|---|---|---|
+| PSR at SR = benchmark | 0.5 (closed form, tested) | 0.5 | right |
+| Negative skew | lowers PSR (tested) | lowers | right |
+| Paper hedge fund | 0.913 (PAPER, SF p.10; ours 0.9134) | about 0.91 | right (value was shown in the question) |
+| Best of 100 zero-edge, PSR(0) > 0.95 | 1983/2000 = 0.9915 (CI 0.986 to 0.995) | about 100% | right |
+| Best of 100 zero-edge, DSR > 0.95 | 1/2000 = 0.0005 (CI 0 to 0.0028); approx with V known 0.0015 | about 5% | wrong: DSR is much stricter |
+- 2026-11-10 review (paper check + hardcoding/logic audit): formulas and all step-3 constants match SF pp.8-11 and
+  DSR pp.8-10. Fixed: min_trl silently wrong for alpha > 0.5, now raises; psr n < 2 and sr0 negative variance raise;
+  experiment reports exact binomial intervals and states the V-known assumption.
+- 2026-11-10 external review of step 3: math correct, all paper examples reproduced. Fixed its findings:
+  NaN/inf inputs raise; unsupported "about 0.0008" claim removed;
+  "upper bound" wording removed; ddof = 1 for V listed as our choice. Files unstaged until Mayo commits.
+- Step 1 and step 2 signed off by Mayo (project owner) on 2026-11-10: TODO 1.39, 2.4, 2.21.
+- 2026-11-10 page check of all 51 constants: 44 match, 0 mismatch, 7 derived (docs/paper_check.md).
+  Second visual check of the 12 image-only values and SR0: all match.
+- Step 3 signed off by Mayo (project owner), 2026-11-10.
+
+## Predictions (step 3), recorded 2026-11-10 before any run
+| Check | Mayo said |
+|---|---|
+| PSR when observed Sharpe = benchmark | 0.5 |
+| Negative skew, positive Sharpe | lowers PSR |
+| Paper hedge fund (SF p.10), with skew and kurtosis | about 0.91 (note: the paper value 0.913 was shown in the question) |
+| Best of 100 zero-edge strategies, 5y daily: share flagged skilled | PSR(0) > 0.95 about 100%, DSR > 0.95 about 5% |
 
 ## Predictions (step 2), recorded 2026-11-10 before any run
 | Check | Mayo said |

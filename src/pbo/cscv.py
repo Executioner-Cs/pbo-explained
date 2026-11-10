@@ -2,11 +2,16 @@
 from itertools import combinations
 
 import numpy as np
+from scipy.stats import rankdata
 
 
 def rank(values):
-    """Ranks with 1 = worst, N = best (PBO p.9 example). Ties are not handled."""
-    return np.argsort(np.argsort(values)) + 1
+    """Ranks with 1 = worst, N = best (PBO p.9 example).
+
+    Ties get the average of their ranks. The paper ranks permutations (p.9) and never has ties.
+    Average is our choice; the R pbo and Python pypbo packages do the same.
+    """
+    return rankdata(values, method="average")
 
 
 def splits(s):
@@ -53,9 +58,7 @@ def cscv(m, s):
     combination_index = {is_b: i for i, (is_b, _) in enumerate(pairs)}
     complements = np.asarray([combination_index[oos_b] for _, oos_b in pairs])
     best = np.argmax(sharpes, axis=1)                 # c, e. best IS strategy n*
-    oos_order = np.argsort(sharpes[complements], axis=1)
-    oos_ranks = np.empty_like(oos_order)
-    np.put_along_axis(oos_ranks, oos_order, np.arange(1, n + 1), axis=1)
+    oos_ranks = rankdata(sharpes[complements], method="average", axis=1)  # same rule as rank()
     w = oos_ranks[np.arange(len(pairs)), best] / (n + 1)  # d, f. relative OOS rank omega
     logits = np.log(w / (1 - w))                     # g. logit lambda
     return np.mean(logits <= 0), logits               # Sec 3.1: PBO = share of logits <= 0

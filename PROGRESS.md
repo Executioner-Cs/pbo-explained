@@ -18,8 +18,12 @@
 - 2026-11-10 second review (hardcoding audit + logic review of cscv and null checks). Fixed: NaN input and
   float-rounded constant columns used to give PBO 0 silently, now raise; bad S now raises ValueError;
   added a hand-worked 4-strategy, 4-block test with PBO = 1/6.
-- Suite: 59 passed.
-- Open: reviewer flags in docs/cscv_notes.md. Ties in rank are not handled (matters for discrete P&L in step 5).
+- 2026-11-10 flags resolved (details in docs/cscv_notes.md):
+  PBO uses logit <= 0 (paper Sec 3.1 integral; null gives exactly 1/2 for even N; same as R pbo and pypbo).
+  Ties use average ranks (same as R pbo and pypbo). S = 16 count is 12,870; the paper's 12,780 is a typo.
+  Null check output unchanged after the tie change (continuous data has no ties).
+- Suite: 61 passed.
+- Open: reviewer approval of the null checks (2.4) and step 2 sign-off (2.21). Packet: docs/review_step2.md.
 
 ## Predictions (step 2), recorded 2026-11-10 before any run
 | Check | Mayo said |

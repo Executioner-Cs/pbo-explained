@@ -153,3 +153,20 @@ def test_fast_cscv_matches_plain_algorithm(s):
     rng = np.random.default_rng(s)
     m = 37.0 + 5.0 * rng.standard_normal((s * 31, 50))
     assert np.array_equal(cscv(m, s)[1], plain_algorithm_2_3(m, s))
+
+
+# --- ties: average ranks (our choice, same as R pbo and pypbo; the paper has no ties)
+
+def test_rank_ties_get_average():
+    # closed form: values 1, 2, 2, 3 take ranks 1, 2.5, 2.5, 4
+    assert list(rank([1.0, 2.0, 2.0, 3.0])) == [1, 2.5, 2.5, 4]
+
+
+def test_duplicate_strategies_share_rank():
+    # Strategies 0 and 1 are identical. Strategy 2 is the mirror.
+    # IS = A: Sharpes 3, 3, -3, pick 0. OOS B: -3, -3, 3, average ranks 1.5, 1.5, 3.
+    #   omega = 1.5 / 4, logit = ln(0.375 / 0.625) = ln 0.6.
+    # IS = B: pick 2. OOS A: strategy 2 has -3, rank 1, omega = 1/4, logit = ln(1/3).
+    pbo, logits = cscv(matrix([UP, DOWN], [UP, DOWN], [DOWN, UP]), 2)
+    assert logits == pytest.approx([math.log(0.6), math.log(1 / 3)])
+    assert pbo == 1

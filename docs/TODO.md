@@ -68,7 +68,7 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 2.1 Read the CSCV procedure on the paper page. Write it in docs/cscv_notes.md
 - [x] 2.2 Predict: PBO when every strategy has zero edge
 - [x] 2.3 Predict: PBO when one strategy has real edge
-- [ ] 2.4 Agree the exact two null checks with the reviewer (proposed in docs/cscv_notes.md)
+- [ ] 2.4 Agree the exact two null checks with the reviewer (packet: docs/review_step2.md)
 - [x] 2.5 Test: split T rows into S equal blocks
 - [x] 2.6 Test: number of combinations is C(S, S/2)
 - [x] 2.7 Test: in-sample and out-of-sample blocks never overlap
@@ -85,7 +85,7 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 2.18 Null check 2: one real edge strategy. Run experiment, compare to prediction
 - [x] 2.19 Check S sensitivity (S = 8, 16)
 - [x] 2.20 Save results/
-- [ ] 2.21 Update PROGRESS.md. Reviewer signs off step 2
+- [ ] 2.21 Update PROGRESS.md (done). Reviewer signs off step 2 (packet: docs/review_step2.md)
 
 ## Step 3. PSR, MinTRL, DSR
 - [ ] 3.1 Read PSR, MinTRL, DSR formulas on the paper pages. Write docs/psr_dsr_notes.md

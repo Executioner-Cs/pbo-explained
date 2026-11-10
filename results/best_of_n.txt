@@ -1,0 +1,8 @@
+trials=2000 years=5 periods_per_year=250 seed=20261109
+
+SE of one 5y annual Sharpe: sim 0.443 | PSEUDO Eq. 2.3, SR=0: 0.447
+
+N    sim mean best (+/- MC SE)   Eq. 2.4 * y^-1/2   sim minus formula
+10   0.688 (+/- 0.006)          0.704              -0.016
+45   0.984 (+/- 0.005)          1.000              -0.016
+100  1.119 (+/- 0.004)          1.132              -0.012

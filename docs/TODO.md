@@ -9,59 +9,59 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 0.3 Add .gitignore (.venv, caches)
 - [x] 0.4 Add pyproject.toml so pytest finds src/
 - [x] 0.5 Install numpy, scipy, pytest. Freeze requirements.txt
-- [x] 0.6 Write docs/oracle_step1.md with tolerances
-- [x] 0.7 Run experiments/check_oracle.py. All rows pass
-- [ ] 0.8 Put the paper PDFs in a papers/ folder
+- [x] 0.6 Write oracle table (deleted 2026-11-10, replaced by src/pbo/paper_values.py)
+- [x] 0.7 Oracle check script (deleted 2026-11-10, values not in paper)
+- [x] 0.8 Put the paper PDFs in a papers/ folder (not committed)
 - [ ] 0.9 Reviewer approves setup
 
 ## Step 1. Sharpe, best-of-N, MinBTL
 ### sharpe(returns, periods_per_year)
-- [ ] 1.1 Predict: value for mean 0.0004, sd 0.01, 252 days
-- [ ] 1.2 Predict: effect of doubling all returns
-- [ ] 1.3 Predict: behaviour when all returns are equal
-- [ ] 1.4 Create src/pbo/__init__.py and tests/
-- [ ] 1.5 Write tests/test_sharpe.py: closed form case (mean/sd * sqrt(252))
-- [ ] 1.6 Add test: scale invariance (doubling returns, same Sharpe)
-- [ ] 1.7 Add test: zero variance input (decide: raise or return nan)
-- [ ] 1.8 Add test: ddof=0 is used
-- [ ] 1.9 Run pytest. Watch it fail
-- [ ] 1.10 Write sharpe() in src/pbo/sharpe.py
-- [ ] 1.11 Line by line review
-- [ ] 1.12 pytest passes
+- [x] 1.1 Predict: value for mean 0.0004, sd 0.01, 252 days
+- [x] 1.2 Predict: effect of doubling all returns
+- [x] 1.3 Predict: behaviour when all returns are equal
+- [x] 1.4 Create src/pbo/__init__.py and tests/
+- [x] 1.5 Write tests/test_sharpe.py: closed form case (mean/sd * sqrt(252))
+- [x] 1.6 Add test: scale invariance (doubling returns, same Sharpe)
+- [x] 1.7 Add test: zero variance input (decide: raise or return nan)
+- [x] 1.8 Add test: ddof=0 is used
+- [x] 1.9 Run pytest. Watch it fail
+- [x] 1.10 Write sharpe() in src/pbo/sharpe.py
+- [x] 1.11 Line by line review
+- [x] 1.12 pytest passes
 
 ### expected_max_normal(n)
-- [ ] 1.13 Predict: does E[max] grow fast or slow with n?
-- [ ] 1.14 Write test: expected_max_normal(10) = 1.5746, abs 5e-5
-- [ ] 1.15 Write gap test: formula minus exact 1.5388 is about 0.036, abs 1e-3
-- [ ] 1.16 Add test: n=1 or n<1 input (decide behaviour)
-- [ ] 1.17 Add test: increases with n
-- [ ] 1.18 Run pytest. Watch it fail
-- [ ] 1.19 Write expected_max_normal() in src/pbo/minbtl.py
-- [ ] 1.20 Line by line review
-- [ ] 1.21 pytest passes
+- [x] 1.13 Predict: does E[max] grow fast or slow with n?
+- [x] 1.14 Write test: expected_max_normal(10) = 1.57 (PSEUDO p.9), abs 0.005
+- [x] 1.15 Write gap test: formula above exact E[max] (exact by integration)
+- [x] 1.16 Add test: n=1 or n<1 input (decide behaviour)
+- [x] 1.17 Add test: increases with n
+- [x] 1.18 Run pytest. Watch it fail
+- [x] 1.19 Write expected_max_normal() in src/pbo/minbtl.py
+- [x] 1.20 Line by line review
+- [x] 1.21 pytest passes
 
 ### min_btl_years(n, target_sharpe)
-- [ ] 1.22 Predict: years needed for n=45, target 1
-- [ ] 1.23 Write tests: n=45 gives 4.998, n=7 gives 1.92, n=10 gives 2.4794
-- [ ] 1.24 Write test: smallest n with result > 5 is 46
-- [ ] 1.25 Write test: result is below the loose bound 2*ln(n)/target^2
-- [ ] 1.26 Run pytest. Watch it fail
-- [ ] 1.27 Write min_btl_years()
-- [ ] 1.28 Line by line review
-- [ ] 1.29 pytest passes
+- [x] 1.22 Predict: years needed for n=45, target 1
+- [x] 1.23 Write test: 45 configurations fit in 5 years at target 1 (PSEUDO p.11)
+- [x] 1.24 Write test: n=46 needs more than 5 years
+- [x] 1.25 Write test: result is below the loose bound 2*ln(n)/target^2
+- [x] 1.26 Run pytest. Watch it fail
+- [x] 1.27 Write min_btl_years()
+- [x] 1.28 Line by line review
+- [x] 1.29 pytest passes
 
 ### Simulation
-- [ ] 1.30 Predict: standard error of 5 year annual Sharpe when true Sharpe is 0
-- [ ] 1.31 Predict: expected best Sharpe among 10, 45, 100 zero-edge strategies (5 years)
-- [ ] 1.32 Write experiments/best_of_n.py (fixed seed)
-- [ ] 1.33 Compare simulation to expected_max_normal(n)/sqrt(5)
-- [ ] 1.34 Compare simulation to your predictions. Note the misses
-- [ ] 1.35 Save plot or table to results/
+- [x] 1.30 Predict: standard error of 5 year annual Sharpe when true Sharpe is 0
+- [x] 1.31 Predict: expected best Sharpe among 10, 45, 100 zero-edge strategies (5 years)
+- [x] 1.32 Write experiments/best_of_n.py (fixed seed)
+- [x] 1.33 Compare simulation to expected_max_normal(n)/sqrt(5)
+- [x] 1.34 Compare simulation to your predictions. Note the misses
+- [x] 1.35 Save plot or table to results/
 
 ### Close step 1
-- [ ] 1.36 Update PROGRESS.md
-- [ ] 1.37 List what is still UNVERIFIED
-- [ ] 1.38 List three paper claims for the reviewer to check on the printed pages
+- [x] 1.36 Update PROGRESS.md
+- [x] 1.37 List what is still UNVERIFIED
+- [x] 1.38 List three paper claims for the reviewer to check on the printed pages
 - [ ] 1.39 Reviewer signs off step 1
 
 ## Step 2. CSCV and the two null checks
@@ -89,7 +89,7 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 
 ## Step 3. PSR, MinTRL, DSR
 - [ ] 3.1 Read PSR, MinTRL, DSR formulas on the paper pages. Write docs/psr_dsr_notes.md
-- [ ] 3.2 Decide kurtosis convention (raw or excess). Write it down
+- [ ] 3.2 Kurtosis convention: raw (DSR p.10, see docs/paper_values.md). Confirm in step 3
 - [ ] 3.3 Predict: PSR for Sharpe 0 against benchmark 0
 - [ ] 3.4 Predict: how negative skew moves PSR
 - [ ] 3.5 Test: PSR closed form case, normal returns

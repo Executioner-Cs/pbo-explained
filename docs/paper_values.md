@@ -28,6 +28,7 @@ Bailey, Lopez de Prado. "The Deflated Sharpe Ratio". J. Portfolio Management, 20
 | Eq. 5, 6 | 12 | Same formula, standard normal and rescaled | cross-check |
 | Snippet 1 | 13 | Python: emc=0.5772156649; (1-emc)*norm.ppf(1-1/N) + emc*norm.ppf(1-1/(N*e)) | cross-check |
 | q = 250 | 10 | 250 observations per year in the example | PERIODS_PER_YEAR |
+| Example inputs | 9 | N = 100, V[{SR_n}] = 1/2, T = 1250, skew -3, kurt 10 | DSR_EX_N, DSR_EX_V_ANNUAL |
 | Example SR0 | 10 | sqrt(1/(2*250)) * E[max_100] ~ 0.1132, non-annualized | test_dsr_example_sr0 |
 | Example DSR (step 3) | 10 | SR 2.5 annual, T = 1250, skew -3, kurt 10, N = 100, V = 1/2: DSR ~ 0.9004 | not yet |
 | Example DSR (step 3) | 10 | Same but N = 46: DSR = 0.9505 | not yet |
@@ -40,7 +41,8 @@ Bailey, Lopez de Prado. "The Deflated Sharpe Ratio". J. Portfolio Management, 20
 - Oracle 2.4794 for N = 10 and the "2.46" in the formula notes: neither is printed in the paper. Dropped.
 
 ## Not yet read
-- papers/backtest-prob.pdf (PBO / CSCV). Read in step 2.
+- PBO paper (papers/backtest-prob.pdf): pp.9-14 and 25-27 read in step 2. Its values and pages are in
+  docs/cscv_notes.md and src/pbo/paper_values.py.
 - papers/sharpe-frontier.pdf (PSR, MinTRL). Read in step 3.
 - papers/overfit-tools.pdf p.2 repeats the 45 configurations / 5 years claim, citing PSEUDO.
 

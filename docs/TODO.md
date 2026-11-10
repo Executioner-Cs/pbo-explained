@@ -16,11 +16,11 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 
 ## Step 1. Sharpe, best-of-N, MinBTL
 ### sharpe(returns, periods_per_year)
-- [x] 1.1 Predict: value for mean 0.0004, sd 0.01, 252 days
+- [x] 1.1 Predict: value for mean 0.0004, sd 0.01, 252 days (historical; q is now 250, DSR p.10)
 - [x] 1.2 Predict: effect of doubling all returns
 - [x] 1.3 Predict: behaviour when all returns are equal
 - [x] 1.4 Create src/pbo/__init__.py and tests/
-- [x] 1.5 Write tests/test_sharpe.py: closed form case (mean/sd * sqrt(252))
+- [x] 1.5 Write tests/test_sharpe.py: closed form case (mean/sd * sqrt(q), q = 250 since 2026-11-10)
 - [x] 1.6 Add test: scale invariance (doubling returns, same Sharpe)
 - [x] 1.7 Add test: zero variance input (decide: raise or return nan)
 - [x] 1.8 Add test: ddof=0 is used
@@ -65,26 +65,26 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [ ] 1.39 Reviewer signs off step 1
 
 ## Step 2. CSCV and the two null checks
-- [ ] 2.1 Read the CSCV procedure on the paper page. Write it in docs/cscv_notes.md
-- [ ] 2.2 Predict: PBO when every strategy has zero edge
-- [ ] 2.3 Predict: PBO when one strategy has real edge
-- [ ] 2.4 Agree the exact two null checks with the reviewer
-- [ ] 2.5 Test: split T rows into S equal blocks
-- [ ] 2.6 Test: number of combinations is C(S, S/2)
-- [ ] 2.7 Test: in-sample and out-of-sample blocks never overlap
-- [ ] 2.8 Test: rank and logit on a tiny hand-worked example
-- [ ] 2.9 Test: PBO on a hand-worked 4-strategy example
-- [ ] 2.10 Run pytest. Watch it fail
-- [ ] 2.11 Write block split in src/pbo/cscv.py
-- [ ] 2.12 Write combination loop
-- [ ] 2.13 Write in-sample pick and out-of-sample rank
-- [ ] 2.14 Write logit and PBO
-- [ ] 2.15 Line by line review
-- [ ] 2.16 pytest passes
-- [ ] 2.17 Null check 1: all zero edge. Run experiment, compare to prediction
-- [ ] 2.18 Null check 2: one real edge strategy. Run experiment, compare to prediction
-- [ ] 2.19 Check S sensitivity (S = 8, 16)
-- [ ] 2.20 Save results/
+- [x] 2.1 Read the CSCV procedure on the paper page. Write it in docs/cscv_notes.md
+- [x] 2.2 Predict: PBO when every strategy has zero edge
+- [x] 2.3 Predict: PBO when one strategy has real edge
+- [ ] 2.4 Agree the exact two null checks with the reviewer (proposed in docs/cscv_notes.md)
+- [x] 2.5 Test: split T rows into S equal blocks
+- [x] 2.6 Test: number of combinations is C(S, S/2)
+- [x] 2.7 Test: in-sample and out-of-sample blocks never overlap
+- [x] 2.8 Test: rank and logit on a tiny hand-worked example
+- [x] 2.9 Test: PBO on a hand-worked 4-strategy example
+- [x] 2.10 Run pytest. Watch it fail
+- [x] 2.11 Write block split in src/pbo/cscv.py
+- [x] 2.12 Write combination loop
+- [x] 2.13 Write in-sample pick and out-of-sample rank
+- [x] 2.14 Write logit and PBO
+- [x] 2.15 Line by line review (two review passes, 2026-11-10)
+- [x] 2.16 pytest passes
+- [x] 2.17 Null check 1: all zero edge. Run experiment, compare to prediction
+- [x] 2.18 Null check 2: one real edge strategy. Run experiment, compare to prediction
+- [x] 2.19 Check S sensitivity (S = 8, 16)
+- [x] 2.20 Save results/
 - [ ] 2.21 Update PROGRESS.md. Reviewer signs off step 2
 
 ## Step 3. PSR, MinTRL, DSR

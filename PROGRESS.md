@@ -96,8 +96,11 @@ our choice) contains 5% in 8 of 9 cells; at AR(1) phi 0.3 it cuts 11.85% to 7.10
   normality (p.22, p.33); its plug-in value 1.1202463 (p.23) is lag-0. Opdyke (2007) first states explicitly that this
   closed form, and so Mertens', holds under serial correlation (abstract p.1; p.4; footnote 9, p.3, contrasts it with
   Lo's Newey-West estimator). SF p.4 and p.8 repeat this, although SF p.5 follows Lo (2002).
-- Novelty: no prior statement of this failure found in the papers read. Variance inflation under serial correlation is
-  known (Lo 2002, not available to us, not cited as a source).
+- Not new: Ledoit and Wolf (2008), Remark 3.1 (working paper, printed p.6), already call Opdyke's formulas for
+  stationary time series incorrect, because they coincide with the IID formulas. Our AR(1) result reproduces that
+  known problem. Whether SF's own wording (p.4, p.8) has been criticized before was not checked. Source: a reviewer
+  read the January 2008 working paper (not in papers/). Variance inflation under serial correlation is also known
+  (Lo 2002, not available to us).
 
 ### 4(b) French 49 industries (experiments/french_bootstrap.py, results/french_bootstrap.txt), RECOMPUTED
 Design (approved before the run): Kenneth French 49 Industry Portfolios, daily, value-weighted; frozen snapshot
@@ -147,11 +150,12 @@ paired difference with fixed and random block positions, 400 datasets; G1 Newey-
 | C: PBO, L = 20 | fixed -0.004 +/- 0.003; random -0.003 +/- 0.004 | no effect |
 | C: PBO, L = 60 | fixed +0.001 +/- 0.004; random -0.001 +/- 0.004 | 4(b)'s +0.017 did not replicate |
 | G1: Newey-West PSR | L = 20: 5.60% (plain 5.90%); L = 60: 5.70% (plain 6.00%) | contains 5% |
-| G2: AR(5) residuals | L = 20: 5.30%; L = 60: 5.35% (residual lag-1 autocorrelation 0.000) | contains 5%: the excess is linear autocorrelation |
+| G2: AR(5) residuals | L = 20: 5.30%; L = 60: 5.35% (residual lag-1 autocorrelation 0.000) | contains 5%; consistent with a contribution from linear autocorrelation |
 | G6: 1971-98 | simulated 10.45% [9.1, 11.9] vs predicted 8.38%, z = +3.34 | prediction too low |
 | G6: 1999-2026 | simulated 3.30% [2.6, 4.2] vs predicted 3.94%, z = -1.47 | agree |
 Reading (ours): PSR's real-data error depends on the period, about 10% in 1971-98 and about 3% after 1999, and it is
-removed by deleting linear autocorrelation (G2) or by a Newey-West variance (G1).
+not detected as an excess over 5% in the full-window AR(5) residual (G2) and Newey-West (G1) checks.
+Intervals containing 5% do not establish that either adjustment fully corrects the error.
 
 ### PBO power under dependence (G4, experiments/null_checks.py, results/null_checks.txt, seed 20261114), RECOMPUTED
 Step 2's Null 2 (one strategy with true annual Sharpe SR, T = 992, N = 100, S = 16, 20 datasets per edge), noise
@@ -201,6 +205,82 @@ Proposed by a reviewer and forwarded by Mayo as the step 5 predictions; UNVERIFI
 | 2 | Best setting's DSR, N = 93 | above 0.95 | long sample and similar settings could give a high DSR |
 | 3 | PBO from 0 to 10 bps | about the same | costs lower returns, but PBO is about relative ranks |
 | 4 | Best setting's Sharpe vs holding the market, 5 bps | higher, in sample | picking the best of 93 favours it; says nothing about the future |
+
+### Results (TODO 5.8-5.10), RECOMPUTED, run 2026-11-12
+Days evaluated: 1972-07-18 to 2026-09-30, T = 13,664 (after the 250-day warm-up and trimming to a multiple of 16).
+Output results/ma_crossover.txt; an external rerun matched it exactly. Buy-and-hold market annual Sharpe 0.458.
+
+| | 0 bps | 5 bps (main) | 10 bps |
+|---|---|---|---|
+| Best setting (fast/slow) | 15/225 | 15/225 | 15/225 |
+| Its annual Sharpe | 0.593 | 0.588 | 0.582 |
+| Settings above buy-and-hold | 55 of 93 | 50 | 45 |
+| PSR(0) of the best | 1.0000 | 1.0000 | 1.0000 |
+| DSR, N = 93 | 0.9985 | 0.9980 | 0.9969 |
+| DSR, implied N = 17.2 | 0.9995 | 0.9994 | 0.9991 |
+| PBO | 0.240 | 0.208 | 0.193 |
+
+| # | Prediction | Result | Verdict |
+|---|---|---|---|
+| 1 | PBO between 0.05 and 0.5 | 0.208 | right; fails the PBO <= 0.05 rule (PBO p.14) |
+| 2 | DSR above 0.95 | 0.9980 | right |
+| 3 | PBO about the same, 0 to 10 bps | 0.240, 0.208, 0.193 | not judged: no tolerance was set in advance. Descriptive only: PBO fell as costs rose |
+| 4 | Best Sharpe above the market, in sample | 0.588 vs 0.458 | right, in sample only |
+
+What these numbers do not say:
+- PBO 0.208: 20.8% of these CSCV splits put their in-sample winner at or below the out-of-sample median (logit <= 0,
+  our convention). It is not the probability that the full-sample winner fails in future trading. The splits
+  overlap, so there is no ordinary binomial standard error.
+- DSR tests the best Sharpe against SR0 = sqrt(V) E[max of N] (DSR Eq. 2), a zero-skill benchmark adjusted for
+  selection. It does not test against the market. Why DSR is near 1 here (for example the equity premium, since
+  every setting is long or flat the market) was not measured.
+- Serial dependence can invalidate the uncorrected PSR/DSR variance. Step 4 demonstrated PSR over-rejection
+  and changes in DSR acceptance rates; its DSR AR(1) rates remained below 5%. No correction here.
+- Conclusion: the selected rule had a higher historical Sharpe than the market, and PBO fails the acceptance rule.
+  Whether its advantage survives dependence and selection is open: follow-up below.
+
+### Follow-up design (TODO 5.12), recorded 2026-11-12 before any run
+- Question: does any setting beat holding the market after serial dependence and selection over 93 settings?
+- Data: 5 bps, all 93 settings, the same 13,664 days. results/ma_crossover.txt is not changed.
+- Target: Sharpe of each setting minus Sharpe of the market, per day, ddof 0, same days.
+- Method: delta method on (mean x, mean y, mean x^2, mean y^2) with a HAC covariance of these four series, so both
+  means, both variances and all cross-covariances enter (pbo.psr_dsr.sharpe_diff). The implementation projects
+  onto the scalar difference of the two Sharpe influence series before estimating HAC covariance; this is
+  algebraically equivalent to the four-moment delta method and avoids unstable raw second-moment subtraction.
+  Source: Ledoit, O. and Wolf, M. (2008), "Robust performance hypothesis testing with the Sharpe ratio", Journal of
+  Empirical Finance 15(5), 850-859, doi 10.1016/j.jempfin.2008.03.002. Checked by a reviewer in the January 2008
+  working paper (not in papers/): printed p.4, Eqs. 1-5 (moments, gradient, delta-method se) match ours; Section
+  3.1 (p.5) HAC estimation, with the covariance scaled by T/(T-4); simulations use a QS kernel with automatic
+  bandwidth (Section 4.1, p.11). Our choices: Bartlett kernel, fixed bandwidth, no T/(T-4) scaling (same limit,
+  about 0.03% in variance at T = 13,664). Not called DSR.
+- Bandwidth (modeling choice): 11 lags = int(4 (T/100)^(2/9)), the rule that gave 7 lags in step 4. 11 lags is
+  the primary result. 0 lags (IID) and 44 lags are sensitivities only, not extra chances to pass.
+- Test (modeling choice): one-sided, H0: difference <= 0, z = difference / se. Bonferroni over 93 at family level
+  0.05: adjusted p = min(1, 93 p) < 0.05, that is z > 3.2700541944911587. Valid asymptotically, for any dependence
+  between settings, conditional on valid individual asymptotic tests. This requires stationarity, suitable
+  dependence/mixing and finite 4+delta moments (Ledoit-Wolf working paper pp.3-4), and an appropriate
+  bandwidth sequence as sample size grows. Eleven lags is the rule-derived value at this T, not a universal
+  correction for arbitrary dependence. Output lists all 93 settings: difference, se, raw p, adjusted p (and adjusted p at 0 and 44).
+- Tests first: identical series give 0 and se 0; IID Normal and correlated nonzero-Sharpe Normal closed forms
+  (delta method with Normal moments); AR(1) Bartlett closed form; bad inputs.
+- Script experiments/market_comparison.py, output results/market_comparison.txt.
+- Prediction (proposed by the reviewer, forwarded by Mayo; UNVERIFIED): at 11 lags, the best-by-Sharpe setting
+  (15/225) will not pass the Bonferroni-adjusted 5% test. Whether any other setting passes is reported, not predicted.
+  Not passing means insufficient evidence of superiority, not proof of no skill.
+
+
+### Implementation review before the follow-up, 2026-11-12
+- Numerical stability: paired Sharpe inference uses the equivalent scalar influence projection, centered
+  variances, and power-of-two normalization. Regression tests first reproduced raw-moment cancellation and
+  extreme-scale failures; the corrected implementation passes exact Normal-moment and Bartlett cases.
+- Shared crossover-panel preparation removes duplicated trimming/matrix assembly and the sibling-script import.
+  Synthetic checks cover import side effects, all 93 output rows, sensitivity ordering, and invalid SE handling.
+- Sharpe/MinBTL boundary validation and the expected-maximum tail calculation were hardened. The frozen market
+  loader rejects missing columns and incomplete windows. No grid, cost, prediction, or primary analysis changed.
+- RECOMPUTED verification: 151 focused tests and 224 full-suite tests pass. A rerun of the original MA experiment
+  reproduced results/ma_crossover.txt exactly with file writing disabled. The new market-comparison experiment
+  remains unrun; its reporting pipeline was exercised only with synthetic data and a stubbed statistic.
+- Review record and mathematical provenance: docs/review_step5.md. Step 5 sign-off and TODO 5.12 remain open.
 
 ## Step 3 (done)
 - src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.

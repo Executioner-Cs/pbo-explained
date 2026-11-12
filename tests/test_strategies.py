@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pbo.strategies import ma_crossover, moving_average
+from pbo.strategies import crossover_panel, ma_crossover, moving_average
 
 
 def test_moving_average_closed_form():
@@ -45,3 +45,35 @@ def test_no_lookahead():
 def test_ma_crossover_rejects_bad_input(prices, excess, fast, slow, cost):
     with pytest.raises(ValueError):
         ma_crossover(prices, excess, fast, slow, cost)
+
+
+@pytest.mark.parametrize("x, window", [
+    (np.r_[1.0, np.nan, 3.0], 2),     # non-finite
+    (np.ones((3, 2)), 2),             # not 1-D
+    (np.ones(5), 2.5),                # fractional window
+    (np.ones(5), 0),                  # window too short
+    (np.ones(5), 6),                  # window longer than the series
+    (np.ones(5), True),               # Boolean is not a window length
+    (np.ones(5), np.bool_(True)),
+])
+def test_moving_average_rejects_bad_input(x, window):
+    with pytest.raises(ValueError):
+        moving_average(x, window)
+
+
+def test_panel_trims_common_days_and_preserves_positions_and_costs():
+    # The first five rows are dropped: longest MA is 4, then 1 extra row to divide by 2.
+    # Both rules enter before the cut; their exits and reentries occur on different days.
+    prices = [1, 2, 3, 4, 5, 4, 3, 2, 1, 2, 3, 4, 5]
+    start, panel = crossover_panel(prices, np.full(13, 0.01), [(1, 3), (2, 4)], 0.001, 2)
+    assert start == 5
+    assert panel == pytest.approx(np.array([
+        [0.01, 0.01], [-0.001, 0.01], [0, -0.001], [0, 0],
+        [0, 0], [0.009, 0], [0.01, 0.009], [0.01, 0.01],
+    ]))
+
+
+@pytest.mark.parametrize("settings, blocks", [([], 2), ([(1, 3)], 0), ([(1, 3)], 1.5), ([(1, 3)], 20)])
+def test_panel_rejects_empty_search_or_invalid_partition(settings, blocks):
+    with pytest.raises(ValueError):
+        crossover_panel(np.arange(1., 14.), np.full(13, 0.01), settings, 0.001, blocks)

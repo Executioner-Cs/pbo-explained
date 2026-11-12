@@ -1,0 +1,27 @@
+Market 19720718 to 20260930, T=13664, 93 settings, S=16. Sharpes annualized x sqrt(250).
+Buy-and-hold market: annual Sharpe 0.458
+
+Cost 0 bps per change in position
+  best setting fast=15 slow=225: annual Sharpe 0.593
+  settings above buy-and-hold: 55 of 93
+  PSR(0) of the best: 1.0000
+  DSR, N = 93: 0.9985
+  DSR, implied N = 17.2: 0.9995
+  PBO: 0.240 (fails the PBO <= 0.05 rule)
+
+Cost 5 bps per change in position
+  best setting fast=15 slow=225: annual Sharpe 0.588
+  settings above buy-and-hold: 50 of 93
+  PSR(0) of the best: 1.0000
+  DSR, N = 93: 0.9980
+  DSR, implied N = 17.2: 0.9994
+  PBO: 0.208 (fails the PBO <= 0.05 rule)
+
+Cost 10 bps per change in position
+  best setting fast=15 slow=225: annual Sharpe 0.582
+  settings above buy-and-hold: 45 of 93
+  PSR(0) of the best: 1.0000
+  DSR, N = 93: 0.9969
+  DSR, implied N = 17.2: 0.9991
+  PBO: 0.193 (fails the PBO <= 0.05 rule)
+

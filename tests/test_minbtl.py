@@ -82,3 +82,28 @@ def test_doubling_target_quarters_years():
 def test_nonpositive_target_raises(target):
     with pytest.raises(ValueError):
         min_btl_years(pv.MINBTL_MAX_N, target)
+
+
+@pytest.mark.parametrize("n", [math.nan, math.inf, -math.inf, [10]])
+def test_invalid_trial_count_raises(n):
+    with pytest.raises(ValueError, match="n must"):
+        expected_max_normal(n)
+    with pytest.raises(ValueError, match="n must"):
+        min_btl_years(n, 1)
+
+
+@pytest.mark.parametrize("target", [math.nan, math.inf, -math.inf, [1]])
+def test_invalid_target_raises(target):
+    with pytest.raises(ValueError, match="target_sharpe"):
+        min_btl_years(pv.MINBTL_MAX_N, target)
+
+
+def test_fractional_effective_trial_count_is_supported():
+    # Effective independent-trial counts are real; the quantile formula is monotone between integers.
+    assert expected_max_normal(2) < expected_max_normal(2.5) < expected_max_normal(3)
+
+
+def test_large_trial_count_stays_finite_below_normal_maximum_bound():
+    # The Gaussian maximum bound sqrt(2 log n) is independent of the quantile approximation.
+    n = 1e20
+    assert 0 < expected_max_normal(n) <= math.sqrt(2 * math.log(n))

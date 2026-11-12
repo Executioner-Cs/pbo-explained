@@ -34,3 +34,15 @@ def test_scale_invariance():
 def test_constant_raises():
     with pytest.raises(ValueError):
         sharpe(np.full(N_OBS, MU), Q)
+
+
+@pytest.mark.parametrize("returns", [[], 1.0, [[1.0, 2.0]], [1.0, np.nan], [1.0, np.inf]])
+def test_invalid_returns_raise(returns):
+    with pytest.raises(ValueError, match="finite nonempty 1-D"):
+        sharpe(returns, Q)
+
+
+@pytest.mark.parametrize("periods", [0, -1, np.nan, np.inf, [250], True])
+def test_invalid_periods_raise(periods):
+    with pytest.raises(ValueError, match="periods_per_year"):
+        sharpe(alternating(2), periods)

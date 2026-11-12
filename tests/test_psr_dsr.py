@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 from pbo import paper_values as pv
 from pbo.psr_dsr import (ar1_psr_false_positive, dsr, implied_n, min_trl, newey_west_factor, psr,
-                         psr_false_positive, psr_long_run, sr0)
+                         psr_false_positive, psr_long_run, sharpe_diff, sr0)
 
 REL = 1e-12             # our choice: exact identities, so only float rounding is allowed
 WEEKS = 52              # calendar convention for the SF p.11 weekly example (paper does not print it)
@@ -251,3 +251,83 @@ def test_implied_n_needs_square_matrix(bad):
 def test_implied_n_rejects_nan():
     with pytest.raises(ValueError):
         implied_n(np.array([[1.0, np.nan], [np.nan, 1.0]]))
+
+
+def test_sharpe_diff_identical_series_is_zero():
+    # Same series: the difference and its standard error are exactly 0 (the cross-covariances cancel).
+    x = np.random.default_rng(1).normal(0.05, 1, 500)
+    diff, se = sharpe_diff(x, x, 5)
+    assert diff == pytest.approx(0, abs=1e-15) and se == pytest.approx(0, abs=1e-12)
+
+
+@pytest.mark.parametrize("a, b, correlation", [(0.3, 0.1, 0.), (1., 0.5, 0.8)])
+def test_sharpe_diff_normal_moments_exact(a, b, correlation):
+    # Equal-weight quadrature: E[u]=E[u^3]=0, E[u^2]=1, E[u^4]=3.
+    # The Cartesian product matches independent Normal moments through degree four exactly.
+    base = np.array([-math.sqrt(3), 0., 0., 0., 0., math.sqrt(3)])
+    u, v = np.repeat(base, 6), np.tile(base, 6)
+    x, y = a + u, b + correlation * u + math.sqrt(1 - correlation**2) * v
+    _, se = sharpe_diff(x, y, 0)
+    # Normal-moment delta method: Cov(SR_x, SR_y)*T = r + a*b*r^2/2.
+    expected = 2 * (1 - correlation) + (a*a + b*b - 2*a*b*correlation**2) / 2
+    assert se**2 * len(x) == pytest.approx(expected)
+
+
+def test_sharpe_diff_ar1_matches_bartlett_closed_form():
+    # x: zero-mean Gaussian AR(1), y: IID N(0, 1). At SR = 0 only the means matter, so T se^2 -> F_x + 1 with
+    # F_x = 1 + 2 sum_{h<=L} (1 - h/(L+1)) phi^h, the Bartlett-weighted autocorrelation sum.
+    rng, t, phi, lags = np.random.default_rng(3), 200_000, 0.5, 50
+    e = rng.normal(0, 1, t)
+    x = np.empty(t)
+    x[0] = e[0] / math.sqrt(1 - phi ** 2)
+    for i in range(1, t):
+        x[i] = phi * x[i - 1] + e[i]
+    _, se = sharpe_diff(x, rng.normal(0, 1, t), lags)
+    f_x = 1 + 2 * sum((1 - h / (lags + 1)) * phi ** h for h in range(1, lags + 1))
+    assert se ** 2 * t == pytest.approx(f_x + 1, rel=0.05)
+
+
+@pytest.mark.parametrize("x, y, lags", [
+    (np.ones(10) + np.arange(10), np.arange(9.0), 1),      # lengths differ
+    (np.arange(10.0), np.r_[np.nan, np.arange(9.0)], 1),   # non-finite
+    (np.arange(10.0), np.ones(10), 1),                     # zero variance
+    (np.arange(10.0), np.arange(10.0) ** 2, 10),           # too many lags
+    (np.arange(10.0), np.arange(10.0) ** 2, -1),           # negative lags
+    (np.arange(10.0), np.arange(10.0) ** 2, 1.5),          # fractional lags
+    (np.ones((10, 2)), np.ones((10, 2)), 1),               # not 1-D
+    (np.arange(10.), np.arange(10.) ** 2, True),          # Boolean is not a lag count
+    (np.arange(10.), np.arange(10.) ** 2, np.bool_(True)),
+])
+def test_sharpe_diff_rejects_bad_input(x, y, lags):
+    with pytest.raises(ValueError):
+        sharpe_diff(x, y, lags)
+
+
+@pytest.mark.parametrize("lags, expected_se", [(0, math.sqrt(0.5)), (1, 0.5)])
+def test_sharpe_diff_paired_bartlett_exact(lags, expected_se):
+    # Zero means and unit variances: influence difference is [0, -2, 2, 0].
+    # Lag-0 sum of squares = 8; lag-1 cross-product = -4, with Bartlett weight 1/2.
+    x, y = np.array([1., -1., 1., -1.]), np.array([1., 1., -1., -1.])
+    difference, se = sharpe_diff(x, y, lags)
+    assert difference == pytest.approx(0)
+    assert se == pytest.approx(expected_se)
+
+
+def test_sharpe_diff_large_mean_keeps_nonzero_variance():
+    # Each centered observation is +/-1: sample variances are exactly 1 despite the large mean.
+    # Squared standardized observations are constant, so only the mean influences remain.
+    x, y = 1e8 + np.array([1., -1., 1., -1.]), np.array([1., 1., -1., -1.])
+    difference, se = sharpe_diff(x, y, 0)
+    assert difference == pytest.approx(1e8)
+    assert se == pytest.approx(math.sqrt(0.5))
+
+
+def test_sharpe_diff_positive_scaling_cancels_uncertainty():
+    x = np.array([-2., -1., 1., 2.])
+    assert sharpe_diff(x, 2 * x, 1) == pytest.approx((0., 0.))
+
+
+@pytest.mark.parametrize("scale", [1e-100, 1e100])
+def test_sharpe_diff_invariant_to_extreme_positive_scale(scale):
+    x, y = np.array([1., 2., 4., 8.]), np.array([2., 0., 5., 1.])
+    assert sharpe_diff(x * scale, y * scale, 1) == pytest.approx(sharpe_diff(x, y, 1))

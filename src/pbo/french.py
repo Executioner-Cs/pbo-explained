@@ -85,12 +85,16 @@ def load_returns():
 def load_market():
     """Market factors in the step 4 window: (dates, market excess return, risk-free rate), decimal, not demeaned."""
     rows = np.array([line.split(",") for line in read_snapshot(*FACTORS).splitlines() if line[:8].isdigit()], float)
+    if rows.ndim != 2 or rows.shape[1] != 5:
+        raise ValueError("unexpected factors schema: need date and four factor columns")
     dates = rows[:, 0].astype(int)
     if np.any(np.diff(dates) <= 0):
         raise ValueError("dates must be unique and increasing")
     keep = (dates >= START) & (dates <= END)
     dates, mkt_rf, rf = dates[keep], rows[keep, 1] / 100, rows[keep, 4] / 100
     values = rows[keep, 1:]
-    if dates[0] != START or dates[-1] != END or (values <= -99.99).any() or not np.isfinite(values).all():
+    if len(dates) != 13929 or dates[0] != START or dates[-1] != END:  # frozen calendar, as in load_returns
+        raise ValueError("unexpected factors window: need all 13,929 frozen trading days")
+    if (values <= -99.99).any() or not np.isfinite(values).all():
         raise ValueError("unexpected window or missing values in the factors file")
     return dates, mkt_rf, rf

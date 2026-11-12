@@ -70,3 +70,14 @@ def test_load_market_frozen_snapshot():
     assert (dates[0], dates[-1]) == (19710701, 20260930)
     assert np.isfinite(mkt_rf).all() and np.isfinite(rf).all()
     assert np.abs(mkt_rf).max() < 0.5 and (rf >= 0).all()    # decimals, not percent
+
+
+@pytest.mark.parametrize("text", [
+    "19600101,1,2,3,0\n",                 # no observations in the frozen window
+    "19710701,1,2,3,0\n20260930,1,2,3,0\n",  # endpoints alone do not establish calendar coverage
+    "19710701,1,2\n",                    # missing factor columns
+])
+def test_load_market_rejects_incomplete_frozen_schema(monkeypatch, text):
+    monkeypatch.setattr("pbo.french.read_snapshot", lambda *args: text)
+    with pytest.raises(ValueError, match="factors|window"):
+        load_market()

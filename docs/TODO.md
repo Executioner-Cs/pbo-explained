@@ -140,10 +140,11 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 5.5 Build strategy return matrix, no lookahead (pbo.strategies.ma_crossover)
 - [x] 5.6 Test: no lookahead (tests/test_strategies.py; a same-day-trading version fails it)
 - [x] 5.7 Predict: PBO and DSR before running (PROGRESS.md, step 5)
-- [ ] 5.8 Run CSCV, PSR, DSR without costs
-- [ ] 5.9 Run with costs
-- [ ] 5.10 Compare. Save to results/
+- [x] 5.8 Run CSCV, PSR, DSR without costs
+- [x] 5.9 Run with costs
+- [x] 5.10 Compare. Save to results/ (results/ma_crossover.txt, PROGRESS.md step 5 results)
 - [ ] 5.11 Update PROGRESS.md. Reviewer signs off step 5
+- [ ] 5.12 Follow-up: Sharpe vs market, paired HAC, Bonferroni over 93 (design in PROGRESS.md, step 5)
 
 ## Step 6. Short write-up
 - [ ] 6.1 Outline: question, method, results, limits

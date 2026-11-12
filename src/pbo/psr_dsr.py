@@ -118,3 +118,35 @@ def implied_n(corr):
     # negative sample rho is noise around 0 for unrelated strategies, so it counts as 0 (N = M), never above M.
     rho = max(rho, 0.0)
     return rho + (1 - rho) * m
+
+
+def sharpe_diff(x, y, lags):
+    """Per-period Sharpe difference and paired Bartlett HAC standard error, with ddof=0.
+
+    Derived from Ledoit-Wolf (2008), January working paper p.4 Eqs.1-5: projecting their four-moment
+    covariance onto the gradient gives each series' influence z - SR*(z^2 - 1)/2, z=(return-mean)/sd.
+    Differencing the influences retains all cross-covariances without forming a 4x4 covariance matrix.
+    Our choices: Bartlett kernel, specified lag count, no T/(T-4) scaling. Zero lags omits serial covariance.
+    """
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    if x.ndim != 1 or x.shape != y.shape or not (np.isfinite(x).all() and np.isfinite(y).all()):
+        raise ValueError("x and y must be finite 1-D arrays of the same length")
+    t = len(x)
+    if isinstance(lags, (bool, np.bool_)) or not isinstance(lags, (int, np.integer)) or not 0 <= lags < t:
+        raise ValueError("lags must be an integer, at least 0 and below the series length")
+    values = np.column_stack([x, y])
+    # Power-of-two normalization is exact in binary and avoids overflow/underflow when squaring returns.
+    values = np.ldexp(values, -np.frexp(np.max(np.abs(values), axis=0))[1])
+    mean, sd = values.mean(axis=0), values.std(axis=0)
+    if not (sd > 0).all():
+        raise ValueError("x and y must have positive variance")
+    sr, z = mean / sd, (values - mean) / sd
+    influence = z - sr * (z*z - 1) / 2
+    paired = influence[:, 0] - influence[:, 1]
+    paired -= paired.mean()
+    long_run = paired @ paired + 2 * sum(
+        (1 - h / (lags + 1)) * (paired[h:] @ paired[:-h]) for h in range(1, lags + 1))
+    if not np.isfinite(long_run) or not np.isfinite(sr).all():
+        raise ValueError("Sharpe difference or its variance is not finite")
+    # Bartlett is positive semidefinite; clip negative floating-point roundoff at zero.
+    return sr[0] - sr[1], math.sqrt(max(0., long_run)) / t

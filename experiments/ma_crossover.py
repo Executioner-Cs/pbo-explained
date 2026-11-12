@@ -15,29 +15,27 @@ from pbo.cscv import cscv
 from pbo.french import load_market
 from pbo.psr_dsr import dsr, implied_n, psr
 from pbo.reporting import save_results
-from pbo.strategies import ma_crossover
+from pbo.strategies import crossover_panel
 
 # Settings
 S = pv.PBO_S16                                    # PBO p.11, p.22
-LEVEL = pv.MINTRL_EX_CONFIDENCE                   # SF p.11
 ACCEPT = pv.PBO_ACCEPT_LEVEL                      # PBO p.14
 Q = pv.PERIODS_PER_YEAR                           # DSR p.10, only to annualize printed Sharpes
 SETTINGS = [(f, s) for f in range(5, 55, 5) for s in range(25, 275, 25) if f < s]   # our choice: 93
 COSTS = (0.0, 0.0005, 0.0010)                     # our choice: 0, 5 (main), 10 bps per change in position
-WARMUP = 250                                      # the longest slow MA
 
 
 def main():
     dates, mkt_rf, rf = load_market()
     prices = np.cumprod(1 + mkt_rf + rf)          # total-return index of the market
-    start = WARMUP + (len(dates) - WARMUP) % S    # drop the warm-up, then trim so S divides T
+    panels = [(cost, *crossover_panel(prices, mkt_rf, SETTINGS, cost, S)) for cost in COSTS]
+    start = panels[0][1]
     market = mkt_rf[start:]
     n = len(SETTINGS)
     lines = [f"Market {dates[start]} to {dates[-1]}, T={len(market)}, {n} settings, S={S}. Sharpes annualized x sqrt({Q}).",
              f"Buy-and-hold market: annual Sharpe {market.mean() / market.std() * np.sqrt(Q):.3f}", ""]
 
-    for cost in COSTS:
-        m = np.column_stack([ma_crossover(prices, mkt_rf, f, s, cost) for f, s in SETTINGS])[start:]
+    for cost, _, m in panels:
         sharpes = m.mean(axis=0) / m.std(axis=0)  # per-period, ddof 0
         best = int(np.argmax(sharpes))
         x, t, v = m[:, best], len(m), sharpes.var(ddof=1)

@@ -133,13 +133,13 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 4.20 Step 4 signed off by Mayo 2026-11-12 (commit pending)
 
 ## Step 5. Real-data case study with costs
-- [ ] 5.1 Pick data source and asset. Record source and date range
-- [ ] 5.2 Pick strategy family (one family, many parameter settings)
-- [ ] 5.3 Pick cost model (bps per trade). Write it down
-- [ ] 5.4 Clean data. Check gaps and splits
-- [ ] 5.5 Build strategy return matrix, no lookahead
-- [ ] 5.6 Test: no lookahead (shifted signal)
-- [ ] 5.7 Predict: PBO and DSR before running
+- [x] 5.1 Pick data source and asset. Record source and date range (PROGRESS.md, step 5 design)
+- [x] 5.2 Pick strategy family (one family, many parameter settings): MA crossover, 93 settings
+- [x] 5.3 Pick cost model (bps per trade). Write it down: 5 bps, sensitivity 0 and 10
+- [x] 5.4 Clean data. Check gaps and splits (frozen hash, window, missing-value and date checks in pbo.french.load_market)
+- [x] 5.5 Build strategy return matrix, no lookahead (pbo.strategies.ma_crossover)
+- [x] 5.6 Test: no lookahead (tests/test_strategies.py; a same-day-trading version fails it)
+- [x] 5.7 Predict: PBO and DSR before running (PROGRESS.md, step 5)
 - [ ] 5.8 Run CSCV, PSR, DSR without costs
 - [ ] 5.9 Run with costs
 - [ ] 5.10 Compare. Save to results/

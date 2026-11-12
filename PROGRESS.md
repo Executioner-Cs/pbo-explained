@@ -176,6 +176,32 @@ algorithm); CSCV refuses N < 2 and non-finite Sharpes; implied_n refuses a non-u
 Experiments hold only settings, the loop and output: data download and checks live in pbo.french.load_returns,
 file writing in pbo.reporting.save_results (all six results files reran identical).
 
+## Step 5 (in progress): a real strategy search
+### Design, approved 2026-11-12 before any run
+- 5.1 Data: Kenneth French, Fama-French research factors, daily (Mkt-RF and RF), percent to decimal. Frozen snapshot
+  SHA-256 96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89 (202609 CRSP, downloaded 2026-11-12),
+  same window as step 4: 1971-07-01 to 2026-09-30.
+- 5.2 Strategy family: moving-average crossover on the market's total-return index (Mkt-RF + RF compounded): long
+  the market when the fast MA is above the slow MA, otherwise flat (earns RF, so excess return 0). Grid (our choice):
+  fast 5, 10, ..., 50 days, slow 25, 50, ..., 250 days, fast < slow: 93 settings. The signal at the close of day t
+  sets the position for day t + 1. The first 250 days are dropped so every setting is defined; T is then trimmed to a
+  multiple of S = 16.
+- 5.3 Costs (our choice): 5 bps per unit change in position, with 0 and 10 bps as sensitivity.
+- 5.5-5.6: one strategy-return matrix (T x 93) per cost level; a test checks that changing future prices leaves past
+  strategy returns unchanged.
+- 5.8-5.9 Measures: PBO (CSCV, S = 16, PBO p.14 rule PBO <= 0.05); the best setting by in-sample Sharpe over the
+  whole sample; its PSR(0); DSR with N = 93 and with implied N (DSR Eq. 9); buy-and-hold market Sharpe as reference.
+  Script: experiments/ma_crossover.py, output results/ma_crossover.txt.
+
+### Predictions before the run (TODO 5.7), recorded 2026-11-12
+Proposed by a reviewer and forwarded by Mayo as the step 5 predictions; UNVERIFIED, not results or paper claims.
+| # | Question | Prediction | Reason given |
+|---|---|---|---|
+| 1 | PBO at 5 bps | between 0.05 and 0.5 | some settings may rank consistently, but a very low PBO seems optimistic across regimes |
+| 2 | Best setting's DSR, N = 93 | above 0.95 | long sample and similar settings could give a high DSR |
+| 3 | PBO from 0 to 10 bps | about the same | costs lower returns, but PBO is about relative ranks |
+| 4 | Best setting's Sharpe vs holding the market, 5 bps | higher, in sample | picking the best of 93 favours it; says nothing about the future |
+
 ## Step 3 (done)
 - src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.
 - tests/test_psr_dsr.py: all paper examples (SF pp.10-11, DSR pp.9-10) plus closed forms and bad-input guards. Suite: 90 passed.

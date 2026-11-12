@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pbo.french import ar_residuals, parse_table, prepare
+from pbo.french import DATA, FACTORS, ar_residuals, load_market, parse_table, prepare
 
 # Same layout as the real file: notes, value-weighted table, blank line, equal-weighted table.
 FIXTURE = """This file was created using the 202609 CRSP database.
@@ -60,3 +60,13 @@ def test_ar_residuals_remove_exact_ar1():
     for t in range(1, 50):
         x[t] = 0.5 * x[t - 1] + 1
     assert ar_residuals(x[:, None], 1) == pytest.approx(np.zeros((49, 1)), abs=1e-9)
+
+
+@pytest.mark.skipif(not (DATA / FACTORS[0]).exists(), reason="frozen factors file not downloaded (git-ignored)")
+def test_load_market_frozen_snapshot():
+    # Same calendar as the step 4 industry window: 13,929 days from 1971-07-01 to 2026-09-30, finite decimals.
+    dates, mkt_rf, rf = load_market()
+    assert len(dates) == len(mkt_rf) == len(rf) == 13929
+    assert (dates[0], dates[-1]) == (19710701, 20260930)
+    assert np.isfinite(mkt_rf).all() and np.isfinite(rf).all()
+    assert np.abs(mkt_rf).max() < 0.5 and (rf >= 0).all()    # decimals, not percent

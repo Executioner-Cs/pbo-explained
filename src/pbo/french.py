@@ -1,4 +1,4 @@
-"""The Kenneth French 49 Industry Portfolios daily data: download once, check, read, clean (step 4b)."""
+"""Kenneth French daily data: 49 industry portfolios (step 4b) and market factors (step 5). Download once, check."""
 import hashlib
 import urllib.request
 import zipfile
@@ -6,10 +6,11 @@ from pathlib import Path
 
 import numpy as np
 
-URL = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_daily_CSV.zip"
-ZIP_FILE = Path(__file__).resolve().parents[2] / "data" / "49_Industry_Portfolios_daily_CSV.zip"   # git-ignored cache
-SHA256 = "b9d36d571e968d71f7b03207e7fed6398554f953719b8c1bf3ee3ad8d00e7520"   # frozen snapshot
-DOWNLOADED = "2026-11-12"
+FTP = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
+DATA = Path(__file__).resolve().parents[2] / "data"                  # git-ignored cache
+INDUSTRIES = ("49_Industry_Portfolios_daily_CSV.zip", "b9d36d571e968d71f7b03207e7fed6398554f953719b8c1bf3ee3ad8d00e7520")
+FACTORS = ("F-F_Research_Data_Factors_daily_CSV.zip", "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89")
+DOWNLOADED = "2026-11-12"                         # both frozen snapshots (202609 CRSP)
 START, END = 19710701, 20260930                   # our choice: fixed window (YYYYMMDD), all 49 industries present
 
 TABLE = "Average Value Weighted Returns -- Daily"
@@ -48,30 +49,48 @@ def ar_residuals(returns, order):
     return resid - resid.mean(axis=0)
 
 
-def load_returns():
-    """Download once, check the file, and return (dates, demeaned decimal returns, lines describing the data)."""
-    if not ZIP_FILE.exists():
-        ZIP_FILE.parent.mkdir(exist_ok=True)
-        part = ZIP_FILE.with_suffix(".part")                 # an interrupted download never looks complete
-        urllib.request.urlretrieve(URL, part)
-        part.replace(ZIP_FILE)
-    raw = ZIP_FILE.read_bytes()
+def read_snapshot(name, sha256):
+    """Text of a frozen French zip: downloaded once to data/, then refused if its SHA-256 ever differs."""
+    path = DATA / name
+    if not path.exists():
+        DATA.mkdir(exist_ok=True)
+        part = path.with_suffix(".part")                     # an interrupted download never looks complete
+        urllib.request.urlretrieve(FTP + name, part)
+        part.replace(path)
     # Same bytes means same columns, dates and values. French revises history, so a new download must fail.
-    if hashlib.sha256(raw).hexdigest() != SHA256:
-        raise ValueError(f"{ZIP_FILE.name} is not the frozen snapshot (SHA-256 differs)")
-    with zipfile.ZipFile(ZIP_FILE) as z:
-        text = z.read(z.namelist()[0]).decode()
+    if hashlib.sha256(path.read_bytes()).hexdigest() != sha256:
+        raise ValueError(f"{name} is not the frozen snapshot (SHA-256 differs)")
+    with zipfile.ZipFile(path) as z:
+        return z.read(z.namelist()[0]).decode()
 
+
+def load_returns():
+    """49 industries: (dates, demeaned decimal returns, lines describing the data)."""
+    text = read_snapshot(*INDUSTRIES)
     all_dates, values = parse_table(text)
     first, last = all_dates[0], all_dates[-1]
     dates, returns = prepare(all_dates, values, START, END)
     if returns.shape != (13929, 49) or dates[0] != START or dates[-1] != END:   # frozen schema (PROGRESS.md)
         raise ValueError(f"unexpected panel {returns.shape}, {dates[0]} to {dates[-1]}")
     facts = [
-        f"Data: {URL}",
-        f"  downloaded {DOWNLOADED}, SHA-256 {SHA256} (checked)",
+        f"Data: {FTP + INDUSTRIES[0]}",
+        f"  downloaded {DOWNLOADED}, SHA-256 {INDUSTRIES[1]} (checked)",
         f"  table '{TABLE}' covers {first} to {last}; percent converted to decimal",
         f"  window {dates[0]} to {dates[-1]}: {returns.shape[0]} days x {returns.shape[1]} industries",
         "  no missing-value markers or non-finite values in the window; each industry demeaned",
     ]
     return dates, returns, facts
+
+
+def load_market():
+    """Market factors in the step 4 window: (dates, market excess return, risk-free rate), decimal, not demeaned."""
+    rows = np.array([line.split(",") for line in read_snapshot(*FACTORS).splitlines() if line[:8].isdigit()], float)
+    dates = rows[:, 0].astype(int)
+    if np.any(np.diff(dates) <= 0):
+        raise ValueError("dates must be unique and increasing")
+    keep = (dates >= START) & (dates <= END)
+    dates, mkt_rf, rf = dates[keep], rows[keep, 1] / 100, rows[keep, 4] / 100
+    values = rows[keep, 1:]
+    if dates[0] != START or dates[-1] != END or (values <= -99.99).any() or not np.isfinite(values).all():
+        raise ValueError("unexpected window or missing values in the factors file")
+    return dates, mkt_rf, rf

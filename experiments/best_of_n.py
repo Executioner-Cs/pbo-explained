@@ -1,48 +1,64 @@
-"""Best-of-N zero-edge strategies. Compares simulation to PSEUDO Eq. 2.4 scaled by Eq. 3.1.
+"""Step 1: the best of N zero-edge strategies looks skilled.
 
-Paper inputs come from pbo.paper_values. TRIALS and SEED are simulation choices, not paper values.
-Run: .venv/Scripts/python.exe experiments/best_of_n.py
+Simulates N strategies with true Sharpe 0 over 5 years, picks the best, and compares the result with
+the formula E[max_N] / sqrt(years) (PSEUDO Eq. 2.4 and Eq. 3.1).
+
+Run from the repository root:  .venv\\Scripts\\python.exe experiments\\best_of_n.py
 """
 import math
-import pathlib
-import sys
+from pathlib import Path
 
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-from pbo import paper_values as pv  # noqa: E402
-from pbo.minbtl import expected_max_normal  # noqa: E402
-from pbo.sharpe import sharpe  # noqa: E402
+from pbo import paper_values as pv
+from pbo.minbtl import expected_max_normal
+from pbo.reporting import mean_with_se
+from pbo.sharpe import sharpe
 
-YEARS = pv.MINBTL_YEARS                                  # PSEUDO p.11
-Q = pv.PERIODS_PER_YEAR                                  # DSR p.10
-NS = (pv.EMAX_N, pv.MINBTL_MAX_N, pv.DSR_EX_N)           # N = 10 (PSEUDO p.9), 45 (p.11), 100 (DSR p.10)
-TRIALS, SEED = 2000, 20261109                            # our choice
+RESULTS_FILE = Path(__file__).parent.parent / "results" / "best_of_n.txt"
 
-rng = np.random.default_rng(SEED)
-single, best = [], {n: [] for n in NS}
-for _ in range(TRIALS):
-    # True SR = 0 (PSEUDO p.8). Sharpe is scale-free, so standard normal draws are enough.
-    r = rng.standard_normal(size=(max(NS), YEARS * Q))
-    s = np.array([sharpe(row, Q) for row in r])
-    single.append(s[0])
-    for n in NS:
-        best[n].append(s[:n].max())
+# Settings
+YEARS = pv.MINBTL_YEARS                           # PSEUDO p.11
+PERIODS_PER_YEAR = pv.PERIODS_PER_YEAR            # DSR p.10
+NUMBERS_OF_TRIALS = (pv.EMAX_N, pv.MINBTL_MAX_N, pv.DSR_EX_N)   # 10 (PSEUDO p.9), 45 (p.11), 100 (DSR p.9)
+SIMULATIONS = 2000                                # our choice
+SEED = 20261109                                   # our choice
 
-# PSEUDO Eq. 2.3 (p.8) with SR = 0: variance of annualized SR = 1 / y.
-se_closed = math.sqrt(1 / YEARS)
 
-lines = [f"trials={TRIALS} years={YEARS} periods_per_year={Q} seed={SEED}", ""]
-lines.append(f"SE of one {YEARS}y annual Sharpe: sim {np.std(single):.3f} | PSEUDO Eq. 2.3, SR=0: {se_closed:.3f}")
-lines.append("")
-lines.append(f"N    sim mean best (+/- MC SE)   Eq. 2.4 * y^-1/2   sim minus formula")
-for n in NS:
-    b = np.array(best[n])
-    f = expected_max_normal(n) / math.sqrt(YEARS)  # PSEUDO Eq. 3.1 (p.9)
-    lines.append(f"{n:<4d} {b.mean():.3f} (+/- {b.std() / math.sqrt(TRIALS):.3f})          {f:.3f}              {b.mean() - f:+.3f}")
+def main():
+    rng = np.random.default_rng(SEED)
+    one_strategy = []
+    best_of = {n: [] for n in NUMBERS_OF_TRIALS}
 
-out = "\n".join(lines)
-print(out)
-(ROOT / "results").mkdir(exist_ok=True)
-(ROOT / "results" / "best_of_n.txt").write_text(out + "\n")
+    for _ in range(SIMULATIONS):
+        # True Sharpe 0 (PSEUDO p.8). Sharpe ignores scale, so standard Normal returns are enough.
+        returns = rng.standard_normal(size=(max(NUMBERS_OF_TRIALS), YEARS * PERIODS_PER_YEAR))
+        sharpes = np.array([sharpe(row, PERIODS_PER_YEAR) for row in returns])
+        one_strategy.append(sharpes[0])
+        for n in NUMBERS_OF_TRIALS:
+            best_of[n].append(sharpes[:n].max())
+
+    # PSEUDO Eq. 2.3 (p.8) with SR = 0: the annual Sharpe has variance 1 / years.
+    formula_se = math.sqrt(1 / YEARS)
+
+    lines = [
+        f"trials={SIMULATIONS} years={YEARS} periods_per_year={PERIODS_PER_YEAR} seed={SEED}",
+        "",
+        f"SE of one {YEARS}y annual Sharpe: sim {np.std(one_strategy):.3f} | PSEUDO Eq. 2.3, SR=0: {formula_se:.3f}",
+        "",
+        "N    sim mean best (+/- MC SE)   Eq. 2.4 * y^-1/2   sim minus formula",
+    ]
+    for n in NUMBERS_OF_TRIALS:
+        mean, mc_se = mean_with_se(best_of[n])
+        formula = expected_max_normal(n) / math.sqrt(YEARS)          # PSEUDO Eq. 3.1 (p.9)
+        lines.append(f"{n:<4d} {mean:.3f} (+/- {mc_se:.3f})          {formula:.3f}"
+                     f"              {mean - formula:+.3f}")
+
+    text = "\n".join(lines)
+    print(text)
+    RESULTS_FILE.parent.mkdir(exist_ok=True)
+    RESULTS_FILE.write_text(text + "\n")
+
+
+if __name__ == "__main__":
+    main()

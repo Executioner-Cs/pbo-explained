@@ -1,7 +1,7 @@
 T=1250 N=100 datasets=2000 seed=20261110, all strategies zero edge, Normal returns
 
-Best of 100 flagged skilled at 95%:
-  PSR(0) > 0.95: 0.9915 (1983/2000, exact 95% CI 0.9864 to 0.9950)
-  DSR    > 0.95: 0.0005 (1/2000, exact 95% CI 0.0000 to 0.0028)
+Best of 100 flagged skilled at 95%. Rate [exact 95% CI] (hits/total):
+  PSR(0) > 0.95: 0.9915 [0.9864, 0.9950] (1983/2000)
+  DSR    > 0.95: 0.0005 [0.0000, 0.0028] (1/2000)
   closed-form approximation with V known: 0.0015 (assumes V known; an approximation, not a bound)
   mean DSR of the best strategy: 0.488

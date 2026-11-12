@@ -1,9 +1,10 @@
 import math
 
+import numpy as np
 import pytest
 
 from pbo import paper_values as pv
-from pbo.psr_dsr import dsr, min_trl, psr, sr0
+from pbo.psr_dsr import dsr, implied_n, min_trl, psr, sr0
 
 REL = 1e-12             # our choice: exact identities, so only float rounding is allowed
 WEEKS = 52              # calendar convention for the SF p.11 weekly example (paper does not print it)
@@ -161,3 +162,37 @@ def test_non_finite_inputs_raise(bad):
         sr0(pv.DSR_EX_N, bad)
     with pytest.raises(ValueError):
         sr0(bad, 0.1)
+
+
+# --- implied number of independent trials: DSR Appendix 3, Eq. 8 and 9 (p.14)
+
+def test_implied_n_limits():
+    # p.14: as rho -> 1, N -> 1; as rho -> 0, N -> M
+    m = 50
+    assert implied_n(np.eye(m)) == pytest.approx(m)
+    assert implied_n(np.ones((m, m))) == pytest.approx(1)
+
+
+def test_implied_n_constant_correlation():
+    # Eq. 8 on a constant-rho matrix returns rho; Eq. 9 then gives rho + (1 - rho) M
+    m, rho = 40, 0.3
+    c = np.full((m, m), rho)
+    np.fill_diagonal(c, 1.0)
+    assert implied_n(c) == pytest.approx(rho + (1 - rho) * m, rel=REL)
+
+
+
+def test_implied_n_negative_average_correlation_counts_as_zero():
+    # rho = -0.5 is treated as 0, so N = M = 2 (p.14: N never exceeds M)
+    assert implied_n(np.array([[1.0, -0.5], [-0.5, 1.0]])) == pytest.approx(2)
+
+
+@pytest.mark.parametrize("bad", [np.ones((3, 2)), np.ones((1, 1))])   # not square; smaller than 2 x 2
+def test_implied_n_needs_square_matrix(bad):
+    with pytest.raises(ValueError):
+        implied_n(bad)
+
+
+def test_implied_n_rejects_nan():
+    with pytest.raises(ValueError):
+        implied_n(np.array([[1.0, np.nan], [np.nan, 1.0]]))

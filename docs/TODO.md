@@ -106,20 +106,20 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 3.16 Update PROGRESS.md. Step 3 signed off by Mayo (project owner), 2026-11-10
 
 ## Step 4. Calibration study
-- [ ] 4.1 Write data generators: iid normal baseline
-- [ ] 4.2 Generator: AR(1) autocorrelation
-- [ ] 4.3 Generator: GARCH(1,1) volatility clustering
-- [ ] 4.4 Generator: Student-t fat tails
-- [ ] 4.5 Generator: correlated strategy variants
-- [ ] 4.6 Test each generator against its known moments
-- [ ] 4.7 Predict: which condition breaks PBO most. Which breaks DSR most
-- [ ] 4.8 Fix grid: number of strategies, sample length, parameter levels
-- [ ] 4.9 Run PBO across the grid
-- [ ] 4.10 Run DSR across the grid
-- [ ] 4.11 Measure false positive rate vs nominal level
-- [ ] 4.12 Report Monte Carlo standard errors for every number
-- [ ] 4.13 Save tables and plots to results/
-- [ ] 4.14 Compare to predictions. Update PROGRESS.md. Reviewer signs off step 4
+- [x] 4.1 Write data generators: iid normal baseline
+- [x] 4.2 Generator: AR(1) autocorrelation
+- [x] 4.3 Generator: GARCH(1,1) volatility clustering
+- [x] 4.4 Generator: Student-t fat tails
+- [x] 4.5 Generator: correlated strategy variants
+- [x] 4.6 Test each generator against its known moments
+- [x] 4.7 Predict: which condition breaks PBO most. Which breaks DSR most
+- [x] 4.8 Fix grid: number of strategies, sample length, parameter levels
+- [x] 4.9 Run PBO across the grid
+- [x] 4.10 Run DSR across the grid
+- [x] 4.11 Measure false positive rate vs nominal level
+- [x] 4.12 Report Monte Carlo standard errors for every number
+- [x] 4.13 Calibration table saved to results/; plot deferred to step 6
+- [x] 4.14 Predictions compared and PROGRESS.md updated; part a signed off 2026-11-12 (part b, French bootstrap, open)
 
 ## Step 5. Real-data case study with costs
 - [ ] 5.1 Pick data source and asset. Record source and date range

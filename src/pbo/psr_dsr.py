@@ -5,6 +5,7 @@ kurt is raw kurtosis, 3 for Normal returns (SF p.10, DSR p.10), not excess kurto
 """
 import math
 
+import numpy as np
 from scipy.stats import norm
 
 from pbo.minbtl import expected_max_normal
@@ -54,3 +55,21 @@ def sr0(n_trials, var_trials):
 def dsr(sr, t, skew, kurt, n_trials, var_trials):
     """Deflated Sharpe Ratio: PSR with benchmark SR0 (DSR Eq. 2, p.8). t = sample length."""
     return psr(sr, sr0(n_trials, var_trials), t, skew, kurt)
+
+
+def implied_n(corr):
+    """Implied number of independent trials from an M x M correlation matrix (DSR Appendix 3, p.14).
+
+    Eq. 8: rho = average off-diagonal correlation. Eq. 9: N = rho + (1 - rho) M.
+    """
+    c = np.asarray(corr, dtype=float)
+    m = len(c)
+    if c.shape != (m, m) or m < 2:
+        raise ValueError("corr must be a square matrix, at least 2 x 2")
+    if not np.isfinite(c).all():
+        raise ValueError("corr has NaN or inf (a strategy with zero variance gives NaN)")
+    rho = (c.sum() - m) / (m * (m - 1))
+    # p.14: Eq. 9 runs from rho = 0 (N = M) to rho = 1 (N = 1). A slightly negative sample rho is noise
+    # around 0 for unrelated strategies, so it counts as 0 (N = M), never more trials than M.
+    rho = max(rho, 0.0)
+    return rho + (1 - rho) * m

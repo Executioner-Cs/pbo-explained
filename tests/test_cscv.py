@@ -170,3 +170,12 @@ def test_duplicate_strategies_share_rank():
     pbo, logits = cscv(matrix([UP, DOWN], [UP, DOWN], [DOWN, UP]), 2)
     assert logits == pytest.approx([math.log(0.6), math.log(1 / 3)])
     assert pbo == 1
+
+
+@pytest.mark.parametrize("s", [2, 4, 8])
+def test_cscv_matches_plain_algorithm_with_ties(s):
+    # Duplicated strategies tie exactly in every split. cscv must still match the direct loop.
+    rng = np.random.default_rng(100 + s)          # our choice: fixed seed
+    base = rng.standard_normal((s * 6, 8))
+    m = np.column_stack([base, base[:, :3]])      # strategies 8-10 copy strategies 0-2
+    assert np.allclose(cscv(m, s)[1], plain_algorithm_2_3(m, s), rtol=0, atol=1e-12)

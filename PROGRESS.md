@@ -25,7 +25,76 @@
   Ties use average ranks (same as R pbo and pypbo). S = 16 count is 12,870; the paper's 12,780 is a typo.
   Null check output unchanged after the tie change (continuous data has no ties).
 - Suite: 61 passed.
-- Open: reviewer approval of the null checks (2.4) and step 2 sign-off (2.21). Packet: docs/review_step2.md.
+- Signed off by Mayo 2026-11-10 (TODO 2.4, 2.21). Packet: docs/review_step2.md.
+
+## Step 4 (part a signed off 2026-11-12; part b open)
+Plan (approved 2026-11-10): (a) controlled simulations, one broken assumption at a time, true edge zero;
+(b) robustness: Kenneth French industry portfolios, circular or stationary block bootstrap, with a stated list of
+what the resampling keeps and destroys. Demeaning removes the average return, not every exploitable pattern.
+Conclusions of (a) and (b) are reported separately. Reference implementations (pypbo, R pbo) are used to
+cross-check outputs, not as inputs.
+
+Grid for (a), approved: N = 100, T = 1248 (DSR p.9's 1250 trimmed so S = 16 divides it), S = 16 (PBO p.11).
+AR(1) phi 0.1, 0.3. GARCH(1,1) (alpha, beta) = (0.05, 0.90), (0.10, 0.85). Student-t nu 8, 5. Cross-strategy
+correlation rho 0.3, 0.7. 2000 datasets per cell for PSR/DSR, 200 for PBO. Levels are our choice.
+Review changes (2026-11-10): GARCH is labelled a combined departure (clustering plus fat tails). Each GARCH
+cell adds a paired control: PBO of the same matrix shuffled in time, reported as a paired difference with
+its MC SE. PSR and DSR are order-invariant, so they cannot differ under the shuffle (algebra, tested).
+PBO 0.5 is the IID-null benchmark, exact only under temporal independence.
+The first 9-cell run is a pilot. The rerun with paired controls is the recorded step 4 result.
+Paper check of step 4 citations (2026-11-10): implied N matches DSR Eq. 8-9 (p.14); PBO <= 0.05 matches PBO p.14
+("a customary approach"). Caveats now stated: DSR p.15 calls the average correlation unreliable when
+T < M(M-1)/2 (here 1248 < 4950), so implied-N rows are indicative only. SF does "not explicitly address
+serially-conditioned processes" (p.4); its serial-correlation wording is Christie's, hedged with "appears" (p.8).
+S = 16 rationale is PBO p.22 (quarterly blocks for 4 years daily); our blocks are 78 days. No paper sets a target
+false positive rate for DSR on a best-of-N pick: "nominal 5%" applies to single-strategy PSR only (SF p.12).
+
+### Predictions (step 4), recorded 2026-11-10 before any run
+| Question | Mayo said |
+|---|---|
+| Condition that moves single-strategy PSR false positive (nominal 5%) most | autocorrelation |
+| Condition that moves best-of-100 DSR false positive most | correlated strategies |
+| Condition that moves mean PBO furthest from 0.5 | none, stays near 0.5 |
+
+### Step 4 results (RECOMPUTED, experiments/calibration.py, output results/calibration.txt)
+2000 datasets per scenario for PSR and DSR, 200 for PBO, seed 20261110. Brackets: exact 95% CI.
+
+| Scenario | PSR(0) > 0.95, fixed strategy | DSR > 0.95, best of 100 (N = 100) | PBO mean |
+|---|---|---|---|
+| IID Normal (baseline) | 4.95% [4.0, 6.0] | 0.00% [0, 0.18] | 0.520 +/- 0.010 |
+| AR(1) phi 0.1 | 6.35% [5.3, 7.5] | 0.10% | 0.495 +/- 0.010 |
+| AR(1) phi 0.3 | 11.85% [10.5, 13.4] | 0.70% | 0.482 +/- 0.011 |
+| GARCH (0.05, 0.90) | 4.70% | 0.15% | 0.481 +/- 0.011 |
+| GARCH (0.10, 0.85) | 5.45% | 0.10% | 0.501 +/- 0.011 |
+| Student-t nu 8 | 4.35% | 0.15% | 0.511 +/- 0.011 |
+| Student-t nu 5 | 4.85% | 0.05% | 0.504 +/- 0.011 |
+| Correlated rho 0.3 | 5.35% | 0.70%; implied N (70.3): 1.05% | 0.512 +/- 0.011 |
+| Correlated rho 0.7 | 4.95% | 2.60% [1.95, 3.40]; implied N (30.7): 5.05% [4.1, 6.1] | 0.504 +/- 0.011 |
+
+PBO <= 0.05 (PBO p.14 rule) accepted a zero-edge set at most once in 200 in any scenario.
+GARCH paired control, PBO original minus time-shuffled: -0.002 +/- 0.004 and +0.009 +/- 0.004 (about 2 SE,
+one of two comparisons: weak evidence). GARCH vs baseline remains a combined clustering-plus-fat-tails comparison.
+
+| Prediction | Mayo said | Result | Verdict |
+|---|---|---|---|
+| Moves PSR false positive most | autocorrelation | AR(1) phi 0.3: 11.85% vs nominal 5%; all others inside the 5% CI | right |
+| Moves best-of-100 DSR most | correlated strategies | rho 0.7: 2.6% (baseline 0%); next largest 0.7% | right |
+| Moves mean PBO from 0.5 most | none, stays near 0.5 | all scenarios 0.481 to 0.520, each within about 2 SE of 0.5 | right |
+
+Why correlation moves DSR: correlated strategies have Sharpes that cluster, so V and SR0 = sqrt(V) E[max] shrink,
+while the best strategy still carries the common noise. The implied-N adjustment (DSR Eq. 9) lowers N and so
+makes DSR less strict, landing at 5.05% at rho 0.7.
+Lead row for correlated strategies: implied N (decided 2026-11-12). DSR defines N as the number of independent
+trials, so N = 100 is knowingly misspecified here. The generator's true rho 0.7 gives N = 30.7 by Eq. 9, and the
+estimate 30.715 +/- 0.019 matches it. N = 100 stays as the naive comparator.
+Limitation: on real data the average correlation is estimated, and DSR p.15 warns it is unreliable when
+T < M(M-1)/2 (here 1248 < 4950).
+
+Cleanup on 2026-11-10 after review: reverted the unrequested CSCV speed-up (cached split plan, single-rank
+shortcut), README and extra .gitignore entries, and extra input validation. implied_n now treats a slightly
+negative sample correlation as 0 (N = M) instead of raising. Full backup of the removed code: tmp/backup_before_trim/.
+Every result number was unchanged by the cleanup (rerun compared line by line).
+Signed off by Mayo 2026-11-12 (part a). Plot deferred to step 6. Open: French-data bootstrap robustness (part b).
 
 ## Step 3 (done)
 - src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.

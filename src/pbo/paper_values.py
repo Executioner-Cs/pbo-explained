@@ -106,3 +106,6 @@ DSR_EX_DSR_ALT = 0.9505
 DSR_EX_N_NORMAL = 88
 DSR_EX_DSR_NORMAL = 0.9505
 DSR_EX_DSR_TOL = 0.00005       # half a unit in the last printed digit
+
+# PBO p.14: "a customary approach would be to reject models for which PBO is estimated to be greater than 0.05".
+PBO_ACCEPT_LEVEL = 0.05

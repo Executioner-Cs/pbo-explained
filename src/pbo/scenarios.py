@@ -14,7 +14,6 @@ Parameter levels are chosen by the caller. What each one departs from the IID No
 import math
 
 import numpy as np
-from scipy.signal import lfilter
 
 GARCH_BURN_IN = 500  # our choice: steps discarded so the variance process forgets its starting value
 
@@ -29,8 +28,12 @@ def ar1(rng, t, n, phi):
     if not -1 < phi < 1:
         raise ValueError("AR(1) needs |phi| < 1 to be stationary")
     e = rng.standard_normal((t, n))
-    x_prev = rng.standard_normal((1, n))                  # stationary N(0, 1) value before t = 0
-    return lfilter([math.sqrt(1 - phi**2)], [1, -phi], e, axis=0, zi=phi * x_prev)[0]
+    x = rng.standard_normal(n)                            # stationary N(0, 1) value before t = 0
+    out = np.empty((t, n))
+    for i in range(t):
+        x = phi * x + math.sqrt(1 - phi**2) * e[i]
+        out[i] = x
+    return out
 
 
 def garch(rng, t, n, alpha, beta):
@@ -65,3 +68,38 @@ def correlated(rng, t, n, rho):
         raise ValueError("rho must be in [0, 1)")
     common = rng.standard_normal((t, 1))
     return math.sqrt(rho) * common + math.sqrt(1 - rho) * rng.standard_normal((t, n))
+
+
+def block_bootstrap(rng, x, t, block):
+    """Circular block bootstrap of whole rows: t rows built from blocks of `block` consecutive rows of x.
+
+    Block starts are uniform over all rows and wrap past the end (circular), so every row of x is
+    equally likely at every output position. Whole rows keep same-day relationships across columns.
+    Two rows h apart (h < block) stay neighbours only if they fall in one block: probability 1 - h/block
+    averaged over output positions (block edges are at fixed multiples of block).
+    block = 1 resamples days independently.
+    """
+    x = np.asarray(x)
+    if x.ndim != 2 or len(x) == 0:
+        raise ValueError("x must be a non-empty T x N matrix")
+    if t < 1 or block < 1:
+        raise ValueError("t and block must be at least 1")
+    starts = rng.integers(0, len(x), size=math.ceil(t / block))
+    rows = (starts[:, None] + np.arange(block)) % len(x)
+    return x[rows.ravel()[:t]]
+
+
+def block_bootstrap_factor(x, block):
+    """Per column: variance of the circular block bootstrap mean divided by its value for independent days.
+
+    Our derivation: F = 1 + 2 sum_{h=1}^{block-1} (1 - h/block) rho_h, with rho_h the circular lag-h
+    autocorrelation of the column. Exact when t is a multiple of block. block = 1 gives F = 1.
+    """
+    d = np.asarray(x, dtype=float) - np.mean(x, axis=0)
+    var = (d * d).sum(axis=0)
+    if np.any(var == 0):
+        raise ValueError("a column has zero variance")
+    f = np.ones(d.shape[1])
+    for h in range(1, block):
+        f += 2 * (1 - h / block) * (d * np.roll(d, -h, axis=0)).sum(axis=0) / var
+    return f

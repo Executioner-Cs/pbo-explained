@@ -44,7 +44,7 @@ and src/pbo/paper_values.py (PSR_EX_*, MINTRL_EX_*).
 - "about 2 years for N = 7": not found in PSEUDO text. Dropped from tests.
 - Oracle 2.4794 for N = 10 and the "2.46" in the formula notes: neither is printed in the paper. Dropped.
 
-## Not yet read
+## Read later
 - PBO paper (papers/backtest-prob.pdf): pp.9-14 and 25-27 read in step 2. Its values and pages are in
   docs/cscv_notes.md and src/pbo/paper_values.py.
 - papers/sharpe-frontier.pdf (PSR, MinTRL). Read in step 3.
@@ -56,3 +56,7 @@ and src/pbo/paper_values.py (PSR_EX_*, MINTRL_EX_*).
 - PBO: https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf
 - PSR: https://www.davidhbailey.com/dhbpapers/sharpe-frontier.pdf
 - Tools: https://www.davidhbailey.com/dhbpapers/overfit-tools.pdf
+- Christie (2005), "Is the Sharpe ratio useful in asset allocation?", Macquarie Applied Finance Centre, SSRN 720801
+  (papers/christie-2005.pdf)
+- Opdyke (2007), "Comparing Sharpe ratios: So where are the p-values?", Journal of Asset Management 8(5),
+  preprint SSRN 886728 (papers/opdyke-2007.pdf)

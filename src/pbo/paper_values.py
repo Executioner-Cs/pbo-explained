@@ -57,7 +57,7 @@ PBO_FIG1_SPLITS = (
     ((2, 3), (0, 1)),
 )
 
-# PBO p.11: "if S = 16, we will form 12,780 combinations". Typo: Eq. 2.3 gives C(16, 8) = 12,870.
+# PBO p.11: "if S = 16, we will form 12,780 combinations". Typo (also printed on p.22): Eq. 2.3 gives C(16, 8) = 12,870.
 # Kept to document the typo. Tests use Eq. 2.3, not this number.
 PBO_S16 = 16
 PBO_S16_PRINTED = 12780

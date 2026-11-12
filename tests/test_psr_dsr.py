@@ -2,9 +2,11 @@ import math
 
 import numpy as np
 import pytest
+from scipy.stats import norm
 
 from pbo import paper_values as pv
-from pbo.psr_dsr import dsr, implied_n, min_trl, psr, sr0
+from pbo.psr_dsr import (ar1_psr_false_positive, dsr, implied_n, min_trl, newey_west_factor, psr,
+                         psr_false_positive, psr_long_run, sr0)
 
 REL = 1e-12             # our choice: exact identities, so only float rounding is allowed
 WEEKS = 52              # calendar convention for the SF p.11 weekly example (paper does not print it)
@@ -182,8 +184,61 @@ def test_implied_n_constant_correlation():
 
 
 
+def test_implied_n_rejects_covariance_matrix():
+    with pytest.raises(ValueError):
+        implied_n(np.array([[2.0, 0.5], [0.5, 2.0]]))
+
+
+def test_psr_false_positive_factor_one_large_t():
+    # factor 1 and t -> infinity: exactly 1 - level
+    assert psr_false_positive(1.0, 10**9, 0.95) == pytest.approx(0.05)
+
+
+def test_ar1_rate_without_autocorrelation():
+    # phi = 0: F = 1, so the finite-t rate is 1 - Z[z sqrt(t/(t-1))] and the large-t rate is exactly 1 - level
+    finite, limit = ar1_psr_false_positive(0.0, 100, 0.95)
+    assert finite == pytest.approx(1 - norm.cdf(norm.ppf(0.95) * math.sqrt(100 / 99)))
+    assert limit == pytest.approx(0.05)
+
+
+def test_ar1_rate_short_series_closed_form():
+    # t = 3: F_3 = 1 + 2 (2/3 phi + 1/3 phi^2); the rate uses sqrt(F (t-1)/t)
+    phi = 0.5
+    f3 = 1 + 2 * (2 / 3 * phi + 1 / 3 * phi**2)
+    expected = 1 - norm.cdf(norm.ppf(0.95) / math.sqrt(f3 * 2 / 3))
+    assert ar1_psr_false_positive(phi, 3, 0.95)[0] == pytest.approx(expected)
+
+
+def test_newey_west_factor_closed_forms():
+    # alternating +1, -1 (100 values): rho_1 = -99/100, so with 1 lag F = 1 + 2 (1/2)(-0.99) = 0.01
+    x = np.tile([1.0, -1.0], 50)
+    assert newey_west_factor(x, 1) == pytest.approx(0.01)
+    assert newey_west_factor(x, 0) == pytest.approx(1.0)
+
+
+def test_psr_long_run_factor_one_is_unchanged():
+    assert psr_long_run(0.97, 1.0) == pytest.approx(0.97)
+    assert psr_long_run(0.5, 4.0) == pytest.approx(0.5)      # Z[0 / 2] = 1/2
+
+
+def test_long_run_helpers_reject_bad_input():
+    with pytest.raises(ValueError):
+        newey_west_factor(np.arange(5.0), 5)            # lags must be below the length
+    with pytest.raises(ValueError):
+        newey_west_factor(np.ones(5), 1)                # zero variance
+    with pytest.raises(ValueError):
+        psr_long_run(0.9, 0.0)                          # factor must be positive
+
+
+def test_ar1_rate_converges_to_limit():
+    # F_t -> (1 + phi)/(1 - phi) and (t - 1)/t -> 1 as t grows
+    finite, limit = ar1_psr_false_positive(0.3, 200_000, 0.95)
+    assert finite == pytest.approx(limit, abs=1e-4)
+    assert limit == pytest.approx(1 - norm.cdf(norm.ppf(0.95) / math.sqrt(1.3 / 0.7)))
+
+
 def test_implied_n_negative_average_correlation_counts_as_zero():
-    # rho = -0.5 is treated as 0, so N = M = 2 (p.14: N never exceeds M)
+    # rho = -0.5 is treated as 0, so N = M = 2. Our choice: p.14 allows rho down to -1/(M-1), where Eq. 9 gives N > M
     assert implied_n(np.array([[1.0, -0.5], [-0.5, 1.0]])) == pytest.approx(2)
 
 

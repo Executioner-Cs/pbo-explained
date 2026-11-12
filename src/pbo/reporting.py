@@ -1,6 +1,10 @@
-"""Small helpers for reporting Monte Carlo results."""
+"""Small helpers for reporting Monte Carlo results and saving them to results/."""
+from pathlib import Path
+
 import numpy as np
 from scipy.stats import binomtest
+
+RESULTS_DIR = Path(__file__).resolve().parents[2] / "results"   # repo/results, wherever the script is run from
 
 
 def rate_with_ci(flags):
@@ -29,3 +33,14 @@ def format_mean(values):
     """'mean +/- standard error'."""
     mean, se = mean_with_se(values)
     return f"{mean:.3f} +/- {se:.3f}"
+
+
+def save_results(name, lines):
+    """Write lines to results/<name>.txt, one per line."""
+    RESULTS_DIR.mkdir(exist_ok=True)
+    (RESULTS_DIR / f"{name}.txt").write_text("\n".join(lines) + "\n")
+
+
+def read_results(name):
+    """Text of results/<name>.txt."""
+    return (RESULTS_DIR / f"{name}.txt").read_text()

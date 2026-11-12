@@ -4,3 +4,4 @@ __pycache__/
 papers/
 tmp/
 *.egg-info/
+data/

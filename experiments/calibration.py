@@ -5,11 +5,12 @@ Every fixed strategy-return column has zero unconditional mean and Sharpe. AR(1)
 For each scenario, 2,000 datasets of T days x N strategies:
   PSR: PSR(0) of strategy 0, a fixed strategy nobody selected. Should say "skilled" 5% of the time
        (SF p.12 reads PSR(0) > 0.95 as 95% confidence).
-  DSR: DSR of the best strategy by Sharpe, with N = 100 and V = variance of the 100 Sharpes (ddof 1).
-       No paper gives a target rate for a best-of-N pick, so compare each row with the IID baseline row.
+  DSR: DSR of the best strategy by Sharpe, with N = 100 and V = variance of the 100 Sharpes (ddof 1, our choice).
+       DSR p.10 reads DSR > 0.95 on the selected strategy as 95% confidence but states no false positive
+       rate, so compare each row with the IID baseline row.
        Correlated scenarios also report DSR with the implied number of independent trials (DSR Eq. 9, p.14).
        Implied N is the lead row (DSR defines N as independent trials); N = 100 is the naive comparator.
-       Caveat (DSR p.15): with T < M(M-1)/2, here 1248 < 4950, that average correlation is unreliable.
+       Caveat (DSR p.15): with T < M(M-1)/2, here 1248 < 4950, the paper calls estimating it "pointless".
   PBO: CSCV on the first 200 datasets. Mean PBO (0.5 is exact only for returns independent over time)
        and the share accepted by the "customary" rule PBO <= 0.05 (PBO p.14).
   GARCH scenarios also score PBO on the same matrix with its days shuffled (one common row order).
@@ -19,9 +20,9 @@ For each scenario, 2,000 datasets of T days x N strategies:
 Paper inputs: N = 100 and T = 1250 (DSR p.9); S = 16 (PBO p.11, motivated on p.22); 95% (SF p.11).
 Our choices: T = 1248 so 16 blocks fit, scenario levels, datasets, seed, moment estimators.
 
-Run from the repository root (takes several minutes):  .venv\\Scripts\\python.exe experiments\\calibration.py
+Run from the repository root (takes several minutes):  .venv/bin/python experiments/calibration.py
 """
-from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor   # runs the scenarios on several CPU cores
 
 import numpy as np
 from scipy.stats import kurtosis, skew
@@ -29,10 +30,8 @@ from scipy.stats import kurtosis, skew
 from pbo import paper_values as pv
 from pbo import scenarios
 from pbo.cscv import cscv
-from pbo.psr_dsr import dsr, implied_n, psr
-from pbo.reporting import format_mean, format_rate
-
-RESULTS_FILE = Path(__file__).parent.parent / "results" / "calibration.txt"
+from pbo.psr_dsr import ar1_psr_false_positive, dsr, implied_n, newey_west_factor, psr, psr_long_run
+from pbo.reporting import format_mean, format_rate, save_results
 
 # Settings
 N = pv.DSR_EX_N                                   # DSR p.9
@@ -43,6 +42,7 @@ ACCEPT = pv.PBO_ACCEPT_LEVEL                      # PBO p.14
 DATASETS = 2000                                   # our choice: per scenario, for PSR and DSR
 PBO_DATASETS = 200                                # our choice: CSCV is slower
 SEED = 20261110                                   # our choice
+NW_LAGS = int(4 * (T / 100) ** (2 / 9))           # Newey-West rule of thumb, our choice: 7 at T = 1248
 
 # (name, make returns, extra check). Levels: our choice (approved grid).
 # Extra checks: "shuffle" = paired time-shuffled PBO control (GARCH); "implied_n" = DSR with implied N.
@@ -59,14 +59,15 @@ SCENARIOS = [
 ]
 
 
-def run_scenario(name, make_returns, extra, seed):
-    """Run one scenario and return its lines for the results file."""
+def run_scenario(index, seed):
+    """Run scenario number `index` and return its lines for the results file."""
+    name, make_returns, extra = SCENARIOS[index]
     rng = np.random.default_rng(seed)
     shuffle_rng = np.random.default_rng(seed.spawn(1)[0])    # own stream, so the data match earlier runs
     is_garch = extra == "shuffle"
     is_correlated = extra == "implied_n"
 
-    psr_flags, dsr_flags, dsr_implied_flags, implied_ns = [], [], [], []
+    psr_flags, psr_nw_flags, dsr_flags, dsr_implied_flags, implied_ns = [], [], [], [], []
     pbos, shuffled_pbos, pbo_differences = [], [], []
 
     for dataset in range(DATASETS):
@@ -77,20 +78,19 @@ def run_scenario(name, make_returns, extra, seed):
         fixed = returns[:, 0]
         psr_value = psr(sharpes[0], 0.0, T, skew(fixed), kurtosis(fixed, fisher=False))
         psr_flags.append(psr_value > LEVEL)
+        psr_nw_flags.append(psr_long_run(psr_value, newey_west_factor(fixed, NW_LAGS)) > LEVEL)   # G1
 
         # DSR on the best strategy
         best = int(np.argmax(sharpes))
         best_skew = skew(returns[:, best])
         best_kurt = kurtosis(returns[:, best], fisher=False)
-        variance = sharpes.var(ddof=1)
+        variance = sharpes.var(ddof=1)                          # our choice: DSR Eq. 2 does not fix ddof
         dsr_flags.append(dsr(sharpes[best], T, best_skew, best_kurt, N, variance) > LEVEL)
 
         if is_correlated:
             n_independent = implied_n(np.corrcoef(returns.T))
             implied_ns.append(n_independent)
-            # Eq. 2.4 needs N >= 2. Does not bind here: Eq. 9 gives 0.7 + 0.3 * 100 = 30.7 at rho = 0.7.
-            n_used = max(n_independent, 2)
-            dsr_implied_flags.append(dsr(sharpes[best], T, best_skew, best_kurt, n_used, variance) > LEVEL)
+            dsr_implied_flags.append(dsr(sharpes[best], T, best_skew, best_kurt, n_independent, variance) > LEVEL)
 
         # PBO on the first PBO_DATASETS datasets
         if dataset < PBO_DATASETS:
@@ -105,6 +105,7 @@ def run_scenario(name, make_returns, extra, seed):
     lines = [
         name,
         f"  PSR(0) > {LEVEL} on a fixed strategy (nominal 0.05): {format_rate(psr_flags)}",
+        f"  same, Newey-West variance ({NW_LAGS} lags, G1):        {format_rate(psr_nw_flags)}",
         f"  DSR > {LEVEL} on best of {N}, N = {N}:            {format_rate(dsr_flags)}",
     ]
     if is_correlated:
@@ -129,12 +130,17 @@ def main():
         "",
     ]
     seeds = np.random.SeedSequence(SEED).spawn(len(SCENARIOS))   # one independent stream per scenario
-    for (name, make_returns, extra), seed in zip(SCENARIOS, seeds):
-        block = run_scenario(name, make_returns, extra, seed)
-        print("\n".join(block), flush=True)
-        lines += block
-    RESULTS_FILE.parent.mkdir(exist_ok=True)
-    RESULTS_FILE.write_text("\n".join(lines) + "\n")
+    # One scenario per CPU core. Each has its own seed, so the results do not depend on which core runs it.
+    with ProcessPoolExecutor() as pool:
+        for block in pool.map(run_scenario, range(len(SCENARIOS)), seeds):
+            print("\n".join(block), flush=True)
+            lines += block
+    lines.append("Analytic PSR(0) > 0.95 rate, zero-Sharpe stationary Gaussian AR(1) (our derivation; SF Eq. 11 assumes 5%):")
+    for phi in (0.1, 0.3):                                       # the two AR(1) cells above
+        finite, limit = ar1_psr_false_positive(phi, T, LEVEL)
+        lines.append(f"  phi {phi}: finite T = {T}: {finite:.4f}, large T: {limit:.4f}")
+    print("\n".join(lines[-3:]), flush=True)
+    save_results("calibration", lines)
 
 
 if __name__ == "__main__":

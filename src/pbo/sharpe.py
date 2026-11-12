@@ -5,7 +5,8 @@ def sharpe(returns, periods_per_year):
     """Annualized Sharpe ratio, SR = (mu / sigma) * sqrt(q) (PSEUDO Eq. 2.2, p.7).
 
     returns: excess returns, as the paper defines them. q = periods_per_year.
-    ddof=0 is our choice. The paper says "sample standard deviation" and does not fix ddof.
+    ddof=0 is our choice; PSEUDO says only "sample standard deviation". Precedent: the SF appendix A.4 code
+    (get_Moments, pp.27-28) divides moments by the number of observations.
     """
     r = np.asarray(returns, dtype=float)
     if np.ptp(r) == 0:

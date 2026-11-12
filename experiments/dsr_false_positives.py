@@ -8,19 +8,15 @@ Paper inputs: T = 1250 and N = 100 (DSR p.9), 95% level (SF p.11).
 Our choices: number of datasets, seed, Normal returns, population skew and raw kurtosis estimators,
 ddof = 1 for the variance across trials.
 
-Run from the repository root:  .venv\\Scripts\\python.exe experiments\\dsr_false_positives.py
+Run from the repository root:  .venv/bin/python experiments/dsr_false_positives.py
 """
-from pathlib import Path
-
 import numpy as np
 from scipy.stats import kurtosis, norm, skew
 
 from pbo import paper_values as pv
 from pbo.minbtl import expected_max_normal
 from pbo.psr_dsr import dsr, psr
-from pbo.reporting import format_rate
-
-RESULTS_FILE = Path(__file__).parent.parent / "results" / "dsr_false_positives.txt"
+from pbo.reporting import format_rate, save_results
 
 # Settings
 T, N = pv.DSR_EX_T, pv.DSR_EX_N                   # DSR p.9
@@ -59,10 +55,8 @@ def main():
         f"  closed-form approximation with V known: {approx:.4f} (assumes V known; an approximation, not a bound)",
         f"  mean DSR of the best strategy: {np.mean(dsr_values):.3f}",
     ]
-    text = "\n".join(lines)
-    print(text)
-    RESULTS_FILE.parent.mkdir(exist_ok=True)
-    RESULTS_FILE.write_text(text + "\n")
+    print("\n".join(lines))
+    save_results("dsr_false_positives", lines)
 
 
 if __name__ == "__main__":

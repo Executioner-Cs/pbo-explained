@@ -26,8 +26,8 @@ Script experiments/null_checks.py, output results/null_checks.txt. N = 100, T = 
 
 ## 4. Run it yourself
 ```
-.venv\Scripts\python.exe -m pytest -q                       # expect all pass
-.venv\Scripts\python.exe experiments\null_checks.py         # about 30 s; expect results/null_checks.txt unchanged
+.venv/bin/python -m pytest -q                               # expect all pass (WSL since 2026-11-12)
+.venv/bin/python experiments/null_checks.py                 # expect the step 2 lines of results/null_checks.txt unchanged
 ```
 
 ## Sign-off

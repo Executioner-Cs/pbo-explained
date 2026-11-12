@@ -1,0 +1,59 @@
+Data: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_daily_CSV.zip
+  downloaded 2026-11-12, SHA-256 b9d36d571e968d71f7b03207e7fed6398554f953719b8c1bf3ee3ad8d00e7520 (checked)
+  table 'Average Value Weighted Returns -- Daily' covers 19260701 to 20260930; percent converted to decimal
+  window 19710701 to 20260930: 13929 days x 49 industries
+  no missing-value markers or non-finite values in the window; each industry demeaned
+
+T=1248 N=49 S=16 datasets: 2000 (PSR, DSR), 200 (PBO), seed=20261112.
+Rates: share flagged, exact 95% CI in brackets. Means: +/- one Monte Carlo SE.
+Both cover Monte Carlo error only, conditional on the observed 1971-2026 sample.
+
+Block length L = 1
+  PSR(0) > 0.95 on a random industry (nominal 0.05):   0.0535 [0.0440, 0.0643] (107/2000)
+  DSR > 0.95 on best, N = implied N (22.995 +/- 0.026): 0.0305 [0.0234, 0.0390] (61/2000)
+  implied N per-dataset SD:                             1.14
+  DSR > 0.95 on best, N = 49 (naive comparator):        0.0145 [0.0097, 0.0208] (29/2000)
+  DSR paired: implied-N accepts minus N = 49 accepts:     0.016 +/- 0.003
+  PBO mean (exchangeable reference 25/49 = 0.5102): 0.511 +/- 0.014
+  PBO per-dataset SD:                                   0.191
+  PBO <= 0.05 (zero-edge set accepted):              0.0050 [0.0001, 0.0275] (1/200)
+
+Block length L = 5
+  PSR(0) > 0.95 on a random industry (nominal 0.05):   0.0515 [0.0422, 0.0621] (103/2000)
+  DSR > 0.95 on best, N = implied N (23.035 +/- 0.033): 0.0355 [0.0278, 0.0446] (71/2000)
+  implied N per-dataset SD:                             1.50
+  DSR > 0.95 on best, N = 49 (naive comparator):        0.0190 [0.0135, 0.0260] (38/2000)
+  DSR paired: implied-N accepts minus N = 49 accepts:     0.017 +/- 0.003
+  PBO mean (exchangeable reference 25/49 = 0.5102): 0.520 +/- 0.013
+  PBO per-dataset SD:                                   0.183
+  PBO <= 0.05 (zero-edge set accepted):              0.0000 [0.0000, 0.0183] (0/200)
+  PBO mean after time shuffle:                          0.517 +/- 0.013
+  PBO per-dataset SD after time shuffle:                0.179
+  PBO paired: original minus time-shuffled:            0.002 +/- 0.004
+
+Block length L = 20 (primary)
+  PSR(0) > 0.95 on a random industry (nominal 0.05):   0.0625 [0.0523, 0.0740] (125/2000)
+  DSR > 0.95 on best, N = implied N (23.238 +/- 0.050): 0.0305 [0.0234, 0.0390] (61/2000)
+  implied N per-dataset SD:                             2.24
+  DSR > 0.95 on best, N = 49 (naive comparator):        0.0130 [0.0085, 0.0190] (26/2000)
+  DSR paired: implied-N accepts minus N = 49 accepts:     0.018 +/- 0.003
+  PBO mean (exchangeable reference 25/49 = 0.5102): 0.505 +/- 0.013
+  PBO per-dataset SD:                                   0.191
+  PBO <= 0.05 (zero-edge set accepted):              0.0050 [0.0001, 0.0275] (1/200)
+  PBO mean after time shuffle:                          0.513 +/- 0.014
+  PBO per-dataset SD after time shuffle:                0.196
+  PBO paired: original minus time-shuffled:            -0.008 +/- 0.005
+
+Block length L = 60
+  PSR(0) > 0.95 on a random industry (nominal 0.05):   0.0625 [0.0523, 0.0740] (125/2000)
+  DSR > 0.95 on best, N = implied N (23.284 +/- 0.066): 0.0310 [0.0238, 0.0396] (62/2000)
+  implied N per-dataset SD:                             2.93
+  DSR > 0.95 on best, N = 49 (naive comparator):        0.0125 [0.0081, 0.0184] (25/2000)
+  DSR paired: implied-N accepts minus N = 49 accepts:     0.018 +/- 0.003
+  PBO mean (exchangeable reference 25/49 = 0.5102): 0.517 +/- 0.012
+  PBO per-dataset SD:                                   0.176
+  PBO <= 0.05 (zero-edge set accepted):              0.0000 [0.0000, 0.0183] (0/200)
+  PBO mean after time shuffle:                          0.500 +/- 0.013
+  PBO per-dataset SD after time shuffle:                0.189
+  PBO paired: original minus time-shuffled:            0.017 +/- 0.005
+

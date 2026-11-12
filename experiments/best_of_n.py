@@ -3,19 +3,16 @@
 Simulates N strategies with true Sharpe 0 over 5 years, picks the best, and compares the result with
 the formula E[max_N] / sqrt(years) (PSEUDO Eq. 2.4 and Eq. 3.1).
 
-Run from the repository root:  .venv\\Scripts\\python.exe experiments\\best_of_n.py
+Run from the repository root:  .venv/bin/python experiments/best_of_n.py
 """
 import math
-from pathlib import Path
 
 import numpy as np
 
 from pbo import paper_values as pv
 from pbo.minbtl import expected_max_normal
-from pbo.reporting import mean_with_se
+from pbo.reporting import mean_with_se, save_results
 from pbo.sharpe import sharpe
-
-RESULTS_FILE = Path(__file__).parent.parent / "results" / "best_of_n.txt"
 
 # Settings
 YEARS = pv.MINBTL_YEARS                           # PSEUDO p.11
@@ -54,10 +51,8 @@ def main():
         lines.append(f"{n:<4d} {mean:.3f} (+/- {mc_se:.3f})          {formula:.3f}"
                      f"              {mean - formula:+.3f}")
 
-    text = "\n".join(lines)
-    print(text)
-    RESULTS_FILE.parent.mkdir(exist_ok=True)
-    RESULTS_FILE.write_text(text + "\n")
+    print("\n".join(lines))
+    save_results("best_of_n", lines)
 
 
 if __name__ == "__main__":

@@ -85,7 +85,7 @@ def test_median_oos_rank_counts_as_overfit():
 
 def test_logit_formula():
     # Step g (p.12): lambda = ln(omega / (1 - omega)), omega = rank / (N + 1). Closed form for N = 2, rank 2: ln 2.
-    pbo, logits = cscv(matrix([UP, UP, UP, UP], [DOWN, DOWN, DOWN, DOWN]), 4)
+    _, logits = cscv(matrix([UP, UP, UP, UP], [DOWN, DOWN, DOWN, DOWN]), 4)
     assert len(logits) == math.comb(4, 2)
     assert logits == pytest.approx([math.log(2)] * math.comb(4, 2))
 
@@ -156,6 +156,19 @@ def test_fast_cscv_matches_plain_algorithm(s):
 
 
 # --- ties: average ranks (our choice, same as R pbo and pypbo; the paper has no ties)
+
+def test_cscv_needs_two_strategies():
+    with pytest.raises(ValueError):
+        cscv(np.random.default_rng(0).standard_normal((8, 1)), 2)
+
+
+def test_cscv_rejects_near_constant_strategy():
+    # Column values 1 + 1e-9 noise with row 0 at 0: the one-pass variance cancels to 0 in some halves.
+    m = 1 + 1e-9 * np.random.default_rng(0).standard_normal((32, 3))
+    m[0] = 0.0
+    with pytest.raises(ValueError):
+        cscv(m, 4)
+
 
 def test_rank_ties_get_average():
     # closed form: values 1, 2, 2, 3 take ranks 1, 2.5, 2.5, 4

@@ -32,25 +32,30 @@ AB|CD, AC|BD, AD|BC, BC|AD, BD|AC, CD|AB.
   3. Two public implementations count lambda <= 0 (fetched 2026-11-10, code read, not run):
      R pbo (github.com/mrbcuda/pbo, R/pbo.R): phi <- sum(ifelse(lambda<=0,1,0))/ncol(cs)
      pypbo (github.com/esvhd/pypbo, pypbo/pbo.py): 1.0 if lam <= 0
-  Def 2.2 (p.10) stays a noted inconsistency in the paper. For even N, <= 0 and < 0 give the same PBO.
+  Def 2.2 (p.10) stays a noted inconsistency in the paper. For even N without ties, <= 0 and < 0 give the same PBO.
 - omega = rank / (N + 1), as on p.12 and in pypbo. The R pbo package divides by N instead
   (omega = 1 at the top rank, logit = inf). We follow the paper.
-- Ties: average ranks (scipy rankdata "average"). RESOLVED 2026-11-10. The paper ranks permutations
+- Ties: average ranks. RESOLVED 2026-11-10. rank() uses scipy rankdata "average"; cscv() counts the strategies
+  below the selected one plus half of the ties (the same number, tested against the plain algorithm). The paper ranks permutations
   (p.9), so it has no ties. R pbo (rank default) and pypbo (rankdata default) both use average.
   Matters for duplicate strategies. Tests: test_rank_ties_get_average, test_duplicate_strategies_share_rank.
   IS ties pick the first column (np.argmax), as pypbo does. For identical columns this does not change omega.
 
 ## Paper inconsistencies to flag
-- p.11: "if S = 16, we will form 12,780 combinations". C(16, 8) = 12,870. Typo in the paper. RESOLVED:
+- p.11: "if S = 16, we will form 12,780 combinations" (printed again on p.22). C(16, 8) = 12,870. Typo in the paper. RESOLVED:
   code counts by Eq. 2.3; test_paper_s16_count_is_a_typo asserts 12,870 and != the printed 12,780;
   the page review (docs/paper_check.md) confirms 12,780 is what p.11 prints.
+- p.12 step c: "nth column of J (the testing set)". J is the training set (IS); step d uses J-bar as
+  the test set. The code uses J as IS. Typo in the paper.
+- Def 2.1 (p.9) uses "<= N/2", Def 2.2 (p.10) uses "< N/2". Sec 3.1's integral up to 0 counts the boundary
+  case, like Def 2.1. Both checked on the rendered pages (2026-11-12).
 - p.25: grid "[0,...,10] for Stop_loss" is 11 values, so 22 x 20 x 11 x 2 = 9,680, not the 8,800 printed.
 - p.26: says "(1.54 vs. 1.3)" but p.25 gives the first Sharpe as 1.27.
 - p.28 summary says "underperforms the mean OOS" (extracted text, not seen as image). Def 2.2 says median.
 
 ## The paper's own two checks (pp.25-27)
 1. Random walk, 1,000 daily prices, seasonal rule searched over a parameter grid. PBO = 55%. (p.25)
-2. Same, but first 5 days of each month shifted to mean +0.25 sd. Real edge. PBO = 13%. (p.26-27)
+2. Same, but first 5 days of each month shifted to mean +0.25 sd. Real edge. PBO = 13%. (p.27)
 Both are single runs with an unknown seed. We cannot match 55% and 13% exactly.
 The rule's code is in "Bailey et al. [1], Appendix 4" (p.27). Not yet opened.
 

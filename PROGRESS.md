@@ -2,7 +2,9 @@
 
 ## Done
 - Setup: PROGRESS.md, .gitignore, pyproject.toml.
-- Packages installed: numpy, scipy, pytest. matplotlib installed, not used yet. Exact pins in requirements.txt.
+- Packages: numpy, scipy, pytest, exact pins in requirements.txt (pytest's own dependencies install with it).
+  2026-11-12: matplotlib and its 8 helper packages removed (unused, about 20 MB); add back for the step 6 plot.
+  2026-11-12: environment moved to WSL (.venv/bin/python, Python 3.13).
 - 2026-11-10: deleted experiments/check_oracle.py and docs/oracle_step1.md. Their numbers were typed in, and some are not in the paper.
 - 2026-11-10: all paper numbers now live in src/pbo/paper_values.py, each with page and equation. Tests and experiments import from there.
 - sharpe() in src/pbo/sharpe.py: 4 tests pass (closed form, ddof=0, scale invariance, zero variance raises).
@@ -11,7 +13,7 @@
   The earlier text-search script (experiments/check_paper_values.py) was removed at Mayo's request: it could not read
   values inside equation images.
 - experiments/best_of_n.py: 2000 trials, 5 years daily, seed 20261109. Output in results/best_of_n.txt.
-- Step 1 code complete. Awaiting reviewer sign-off (task 1.39).
+- Step 1 code complete and signed off (TODO 1.39).
 
 ## Step 2 (done)
 - src/pbo/cscv.py: Algorithm 2.3 and Sec 3.1 of the PBO paper. tests/test_cscv.py. Notes in docs/cscv_notes.md.
@@ -27,74 +29,152 @@
 - Suite: 61 passed.
 - Signed off by Mayo 2026-11-10 (TODO 2.4, 2.21). Packet: docs/review_step2.md.
 
-## Step 4 (part a signed off 2026-11-12; part b open)
-Plan (approved 2026-11-10): (a) controlled simulations, one broken assumption at a time, true edge zero;
-(b) robustness: Kenneth French industry portfolios, circular or stationary block bootstrap, with a stated list of
-what the resampling keeps and destroys. Demeaning removes the average return, not every exploitable pattern.
-Conclusions of (a) and (b) are reported separately. Reference implementations (pypbo, R pbo) are used to
-cross-check outputs, not as inputs.
+## Step 4 (done; signed off by Mayo 2026-11-12)
+Question: how PSR, DSR and PBO behave, with zero true edge, when one IID Normal assumption breaks: (a) synthetic
+scenarios, (b) real dependence from the French 49 industries. Each design and prediction was written here before its
+run (the order is recorded by the author, not by git; from step 5 on, designs are committed before running).
+Decision rule (completed after the 4(b) run): tests against a fixed value use the null SE, differences the paired SE;
+|z| < 2 no detected effect, 2 to 3 suggestive, >= 3 or Bonferroni p < 0.05 within one table detected. A rate
+"contains 5%" when its exact 95% CI contains 0.05.
+Paper readings: SF p.12 reads PSR(0) > 0.95 as 95% confidence ("nominal 5%" is our phrase). DSR p.10 reads DSR > 0.95
+on the selected strategy as 95% confidence; no paper states a false-positive rate. PBO p.14: PBO <= 0.05 is "a
+customary approach". S = 16: PBO p.11 (example), p.22 (rationale). PBO counts logit <= 0 (Sec 3.1, p.13; our reading,
+Def 2.2 on p.10 uses rank < N/2): reference 0.5 for N = 100, 25/49 = 0.5102 for N = 49.
+Suite: 153 passed (WSL, Python 3.13.18, numpy 2.5.4, scipy 1.18.1). Setup: python3.13 -m venv .venv, then
+.venv/bin/pip install -r requirements.txt (installs pbo itself with -e .).
 
-Grid for (a), approved: N = 100, T = 1248 (DSR p.9's 1250 trimmed so S = 16 divides it), S = 16 (PBO p.11).
-AR(1) phi 0.1, 0.3. GARCH(1,1) (alpha, beta) = (0.05, 0.90), (0.10, 0.85). Student-t nu 8, 5. Cross-strategy
-correlation rho 0.3, 0.7. 2000 datasets per cell for PSR/DSR, 200 for PBO. Levels are our choice.
-Review changes (2026-11-10): GARCH is labelled a combined departure (clustering plus fat tails). Each GARCH
-cell adds a paired control: PBO of the same matrix shuffled in time, reported as a paired difference with
-its MC SE. PSR and DSR are order-invariant, so they cannot differ under the shuffle (algebra, tested).
-PBO 0.5 is the IID-null benchmark, exact only under temporal independence.
-The first 9-cell run is a pilot. The rerun with paired controls is the recorded step 4 result.
-Paper check of step 4 citations (2026-11-10): implied N matches DSR Eq. 8-9 (p.14); PBO <= 0.05 matches PBO p.14
-("a customary approach"). Caveats now stated: DSR p.15 calls the average correlation unreliable when
-T < M(M-1)/2 (here 1248 < 4950), so implied-N rows are indicative only. SF does "not explicitly address
-serially-conditioned processes" (p.4); its serial-correlation wording is Christie's, hedged with "appears" (p.8).
-S = 16 rationale is PBO p.22 (quarterly blocks for 4 years daily); our blocks are 78 days. No paper sets a target
-false positive rate for DSR on a best-of-N pick: "nominal 5%" applies to single-strategy PSR only (SF p.12).
+### 4(a) synthetic (experiments/calibration.py, results/calibration.txt), RECOMPUTED
+N = 100, T = 1248 (DSR p.9's 1250 trimmed so S = 16 divides it), 2000 datasets (PSR, DSR), 200 (PBO), seed 20261110.
+Levels (our choice): AR(1) phi 0.1, 0.3; GARCH(1,1) (0.05, 0.90), (0.10, 0.85), clustering and fat tails together, with
+a paired time-shuffle PBO control; Student-t nu 8, 5; one-factor correlation rho 0.3, 0.7. PSR on a fixed, unselected
+strategy. DSR on the best of 100, V = variance of the 100 Sharpes (ddof 1, our choice).
+Predictions (Mayo, 2026-11-10, before any run): PSR moved most by autocorrelation; DSR by correlated strategies; mean
+PBO by none, stays near 0.5.
 
-### Predictions (step 4), recorded 2026-11-10 before any run
-| Question | Mayo said |
-|---|---|
-| Condition that moves single-strategy PSR false positive (nominal 5%) most | autocorrelation |
-| Condition that moves best-of-100 DSR false positive most | correlated strategies |
-| Condition that moves mean PBO furthest from 0.5 | none, stays near 0.5 |
+| Scenario | PSR(0) > 0.95 | same, Newey-West (G1) | DSR, N = 100 | DSR, implied N | PBO mean |
+|---|---|---|---|---|---|
+| IID Normal | 4.95% [4.0, 6.0] | 5.10% | 0.00% | | 0.520 |
+| AR(1) phi 0.1 | 6.35% [5.3, 7.5] | 5.30% | 0.10% | | 0.495 |
+| AR(1) phi 0.3 | 11.85% [10.5, 13.4] | 7.10% [6.0, 8.3] | 0.70% | | 0.482 |
+| GARCH (0.05, 0.90) | 4.70% | 4.60% | 0.15% | | 0.481 |
+| GARCH (0.10, 0.85) | 5.45% | 5.80% | 0.10% | | 0.501 |
+| Student-t nu 8 | 4.35% | 4.65% | 0.15% | | 0.511 |
+| Student-t nu 5 | 4.85% | 5.20% | 0.05% | | 0.504 |
+| Correlated rho 0.3 | 5.35% | 5.55% | 0.70% | 1.05% (N 70.3) | 0.512 |
+| Correlated rho 0.7 | 4.95% | 5.20% | 2.60% | 5.05% (N 30.7) | 0.504 |
+PBO SE 0.010 to 0.011; PBO <= 0.05 accepted a zero-edge set at most 1 time in 200. GARCH paired PBO (original minus
+shuffled): -0.002 +/- 0.004, +0.009 +/- 0.004.
+Verdicts: all three predictions right. Both AR(1) cells exclude 5%; every other PSR CI contains 5%. The DSR rate rises
+with correlation; 5.05% at rho 0.7 is where that curve crosses 5%, not a calibrated level. Implied N (DSR Eq. 9) was
+chosen as lead row after these results were seen; both rows are reported. The estimate 30.715 matches the true 30.7
+although T < M(M-1)/2 (1248 < 4950), the regime DSR p.15 calls "pointless". Why correlation moves DSR (our reasoning):
+correlated Sharpes cluster, so V and SR0 = sqrt(V) E[max] shrink while the best strategy keeps the common noise.
+G1 (our correction, design recorded before the run): PSR with a Newey-West long-run variance (7 lags, rule of thumb,
+our choice) contains 5% in 8 of 9 cells; at AR(1) phi 0.3 it cuts 11.85% to 7.10%, not to 5%.
 
-### Step 4 results (RECOMPUTED, experiments/calibration.py, output results/calibration.txt)
-2000 datasets per scenario for PSR and DSR, 200 for PBO, seed 20261110. Brackets: exact 95% CI.
+### Paper finding: PSR's variance under serial correlation
+- SF p.4: "Opdyke (2007) has shown that Mertens' equation has a limiting distribution that is valid under the more
+  general assumption of stationary and ergodic returns [...] Thus, our results are valid under such conditions". p.8:
+  Christie (2005) allows "serial correlation"; Opdyke "proved that the expressions [...] are in fact identical". p.11:
+  Eqs. 11 and 13 rest on "an asymptotic distribution". Footnote 2 (p.4) and p.15 point the other way.
+- Our derivation (not from any paper): at SR = 0, sqrt(T) SR -> N(0, 1 + 2 sum rho_k) by the CLT for the mean and
+  Slutsky; Eq. 8 assumes the factor is 1. For a stationary Gaussian AR(1) the factor is (1 + phi)/(1 - phi) for every
+  large T, so the error does not vanish asymptotically.
 
-| Scenario | PSR(0) > 0.95, fixed strategy | DSR > 0.95, best of 100 (N = 100) | PBO mean |
+| AR(1) | Analytic rate, finite T / large T (RECOMPUTED, psr_dsr.ar1_psr_false_positive) | Simulated (4(a)) |
+|---|---|---|
+| phi 0.1 | 6.83% / 6.84% | 6.35% [5.3, 7.5] |
+| phi 0.3 | 11.36% / 11.37% | 11.85% [10.5, 13.4] |
+- Conclusion: SF's p.4 sentence, read as applying the unchanged Eq. 8 / Eq. 11 variance to serially correlated
+  stationary returns, is contradicted by a stationary Gaussian AR(1). SF's IID non-Normal results, examples and
+  formulas stand; the code reproduces them. The GARCH cells (serially uncorrelated) are consistent with SF at SR = 0.
+  Only SR* = 0 was tested.
+- Where the claim comes from (papers/christie-2005.pdf, papers/opdyke-2007.pdf, text extraction): Christie's GMM
+  estimates use an autocorrelation-consistent S (footnote 13, p.10) and are valid under serial correlation. His eq. 8-9
+  (p.10) write S0 = E[F F^T], the long-run covariance only when F is serially uncorrelated, while p.7 says the setup
+  "still permits serial correlation". His Appendix B closed form (pp.33-35) is lag-0 and is presented as dropping
+  normality (p.22, p.33); its plug-in value 1.1202463 (p.23) is lag-0. Opdyke (2007) first states explicitly that this
+  closed form, and so Mertens', holds under serial correlation (abstract p.1; p.4; footnote 9, p.3, contrasts it with
+  Lo's Newey-West estimator). SF p.4 and p.8 repeat this, although SF p.5 follows Lo (2002).
+- Novelty: no prior statement of this failure found in the papers read. Variance inflation under serial correlation is
+  known (Lo 2002, not available to us, not cited as a source).
+
+### 4(b) French 49 industries (experiments/french_bootstrap.py, results/french_bootstrap.txt), RECOMPUTED
+Design (approved before the run): Kenneth French 49 Industry Portfolios, daily, value-weighted; frozen snapshot
+SHA-256 b9d36d571e968d71f7b03207e7fed6398554f953719b8c1bf3ee3ad8d00e7520 (202609 CRSP, downloaded 2026-11-12); window
+1971-07-01 to 2026-09-30, 13,929 days x 49 (Softw has missing values until 1971-03-11). Each industry demeaned once.
+Circular block bootstrap of whole days, L = 1, 5, 20 (primary), 60; it keeps same-day relationships and fat tails,
+partly keeps short-lag dependence (two days h apart stay together with probability 1 - h/L, averaged over positions),
+destroys longer dependence. 2000 datasets (PSR, DSR), 200 (PBO), T = 1248, S = 16, seed 20261112. PSR on a uniformly
+drawn industry; DSR with implied N (lead) and N = 49; DSR p.15's inequality is not triggered (1248 > 1176, by 72);
+PBO with a paired time-shuffle control. This measures calibration under real dependence; it is not a
+strategy-overfitting study (step 5), and the fixed-length bootstrap is not strictly stationary.
+Predictions (Mayo, before the run): 1 PSR above 5%, below 11.85%. 2 implied N well below 49, higher acceptance, N = 49
+conservative. 3 mean PBO 0.45 to 0.55, spread changes more than the mean. 4 time order moves PSR more than PBO. 5 overall
+confirms 4(a). 6 PSR: L = 1 closest to 5%, modest rise at 5 and 20, plateau at 60; amended before the run to two
+hypotheses: paper (5% at every L) vs project. 7 implied-N DSR may rise at L = 60, N = 49 lower and flatter; amended
+before the run: implied N stable, no DSR direction, N = 49 more conservative. 8 mean PBO near 25/49, paired effect small.
+
+| L | PSR(0) > 0.95 | DSR implied N (mean N, SD) | DSR N = 49 | PBO mean (SD) | PBO orig - shuffled |
+|---|---|---|---|---|---|
+| 1 | 5.35% [4.4, 6.4] | 3.05% (23.0, 1.14) | 1.45% | 0.511 (0.191) | |
+| 5 | 5.15% [4.2, 6.2] | 3.55% (23.0, 1.50) | 1.90% | 0.520 (0.183) | +0.002 +/- 0.004 |
+| 20 | 6.25% [5.2, 7.4] | 3.05% (23.2, 2.24) | 1.30% | 0.505 (0.191) | -0.008 +/- 0.005 |
+| 60 | 6.25% [5.2, 7.4] | 3.10% (23.3, 2.93) | 1.25% | 0.517 (0.176) | +0.017 +/- 0.005 |
+z and p below are one-off calculations from the counts (UNVERIFIED as code).
+- 1: consistent. L = 20 and 60: z = 2.56 each (suggestive); pooled L >= 5: 353/6000 = 5.88%, z = 3.14, p = 0.0012
+  (pooling chosen after the run). 6: the pooled excess is inconsistent with SF's claim read literally; the formal
+  counterexample stays 4(a). The project's L-shape is untestable here: expected differences of 0.1 to 0.5 points
+  against a resolution of about 2 points.
+- 2: right. Implied-N rate 1.9 to 2.5 times the N = 49 rate; the paired difference (+1.6 to +1.8 points) is
+  non-negative by construction (same V, same best strategy). Both rows are below the 5% reading of DSR p.10.
+- 7 amended: right (implied N 23.0 to 23.3, SD widens 1.1 to 2.9 with L, no DSR trend). 7 original: not supported.
+- 3: mean right; spread was not defined before the run and shows no detected change (SD 0.176 to 0.196).
+- 4: ill-posed (a rate against a mean probability). 8: means within about 1 SE of 0.5102; the L = 60 paired value
+  (3.4 SE) did not replicate (follow-up C). 5: partly right.
+
+### 4(b) follow-ups (experiments/french_followups.py, results/french_followups.txt, seed 20261113), RECOMPUTED
+Designs recorded before the runs: A predicted PSR rate from each industry's autocorrelations, F_L = 1 + 2 sum (1 - h/L)
+rho_h (our derivation, approximate when L does not divide T); B weekly returns (5-day sums), 4-week blocks; C PBO
+paired difference with fixed and random block positions, 400 datasets; G1 Newey-West PSR; G2 PSR on AR(5) residuals
+(our choice of order); G6 the L = 20 PSR test on 1971-1998 and 1999-2026 separately.
+
+| Check | Result | Verdict (preset rule) |
+|---|---|---|
+| A: daily lag-1 autocorrelation | 1971-98 mean +0.157 (49 of 49 significant); 1999-2026 -0.026; full +0.036 | description |
+| A: predicted vs observed 4(b) PSR | 4.99 / 5.42 / 5.50 / 5.38% vs 5.35 / 5.15 / 6.25 / 6.25%, z +0.73 / -0.53 / +1.48 / +1.72 | agree; accounts for about half the pooled excess |
+| B: weekly PSR | 4.35% [3.50, 5.34]; 17 of 49 industries still autocorrelated | contains 5%; tests weekly sampling, not SF p.15's condition |
+| C: PBO, L = 20 | fixed -0.004 +/- 0.003; random -0.003 +/- 0.004 | no effect |
+| C: PBO, L = 60 | fixed +0.001 +/- 0.004; random -0.001 +/- 0.004 | 4(b)'s +0.017 did not replicate |
+| G1: Newey-West PSR | L = 20: 5.60% (plain 5.90%); L = 60: 5.70% (plain 6.00%) | contains 5% |
+| G2: AR(5) residuals | L = 20: 5.30%; L = 60: 5.35% (residual lag-1 autocorrelation 0.000) | contains 5%: the excess is linear autocorrelation |
+| G6: 1971-98 | simulated 10.45% [9.1, 11.9] vs predicted 8.38%, z = +3.34 | prediction too low |
+| G6: 1999-2026 | simulated 3.30% [2.6, 4.2] vs predicted 3.94%, z = -1.47 | agree |
+Reading (ours): PSR's real-data error depends on the period, about 10% in 1971-98 and about 3% after 1999, and it is
+removed by deleting linear autocorrelation (G2) or by a Newey-West variance (G1).
+
+### PBO power under dependence (G4, experiments/null_checks.py, results/null_checks.txt, seed 20261114), RECOMPUTED
+Step 2's Null 2 (one strategy with true annual Sharpe SR, T = 992, N = 100, S = 16, 20 datasets per edge), noise
+changed. Mean PBO; z against the IID row:
+| SR | IID | AR(1) phi 0.3 | GARCH (0.10, 0.85) |
 |---|---|---|---|
-| IID Normal (baseline) | 4.95% [4.0, 6.0] | 0.00% [0, 0.18] | 0.520 +/- 0.010 |
-| AR(1) phi 0.1 | 6.35% [5.3, 7.5] | 0.10% | 0.495 +/- 0.010 |
-| AR(1) phi 0.3 | 11.85% [10.5, 13.4] | 0.70% | 0.482 +/- 0.011 |
-| GARCH (0.05, 0.90) | 4.70% | 0.15% | 0.481 +/- 0.011 |
-| GARCH (0.10, 0.85) | 5.45% | 0.10% | 0.501 +/- 0.011 |
-| Student-t nu 8 | 4.35% | 0.15% | 0.511 +/- 0.011 |
-| Student-t nu 5 | 4.85% | 0.05% | 0.504 +/- 0.011 |
-| Correlated rho 0.3 | 5.35% | 0.70%; implied N (70.3): 1.05% | 0.512 +/- 0.011 |
-| Correlated rho 0.7 | 4.95% | 2.60% [1.95, 3.40]; implied N (30.7): 5.05% [4.1, 6.1] | 0.504 +/- 0.011 |
+| 0 | 0.516 | 0.478 (z -0.73) | 0.566 (z +1.05) |
+| 1 | 0.433 | 0.404 (z -0.60) | 0.373 (z -1.13) |
+| 2 | 0.189 | 0.391 (z +3.55) | 0.189 (z +0.00) |
+| 3 | 0.026 | 0.098 (z +3.62) | 0.019 (z -0.77) |
+Verdict: power kept under GARCH; under AR(1) phi 0.3 PBO detects a real edge less well at SR 2 and 3.
 
-PBO <= 0.05 (PBO p.14 rule) accepted a zero-edge set at most once in 200 in any scenario.
-GARCH paired control, PBO original minus time-shuffled: -0.002 +/- 0.004 and +0.009 +/- 0.004 (about 2 SE,
-one of two comparisons: weak evidence). GARCH vs baseline remains a combined clustering-plus-fat-tails comparison.
+### Limits (for step 6)
+Only SR* = 0 was tested (PSR at SR* > 0 and MinTRL under GARCH untested). 4(b) intervals are Monte Carlo error given
+one 1971-2026 history. The Newey-West lag is a rule of thumb and under-corrects at phi 0.3. DSR results are relative
+to the p.10 reading. No plot yet (step 6).
 
-| Prediction | Mayo said | Result | Verdict |
-|---|---|---|---|
-| Moves PSR false positive most | autocorrelation | AR(1) phi 0.3: 11.85% vs nominal 5%; all others inside the 5% CI | right |
-| Moves best-of-100 DSR most | correlated strategies | rho 0.7: 2.6% (baseline 0%); next largest 0.7% | right |
-| Moves mean PBO from 0.5 most | none, stays near 0.5 | all scenarios 0.481 to 0.520, each within about 2 SE of 0.5 | right |
-
-Why correlation moves DSR: correlated strategies have Sharpes that cluster, so V and SR0 = sqrt(V) E[max] shrink,
-while the best strategy still carries the common noise. The implied-N adjustment (DSR Eq. 9) lowers N and so
-makes DSR less strict, landing at 5.05% at rho 0.7.
-Lead row for correlated strategies: implied N (decided 2026-11-12). DSR defines N as the number of independent
-trials, so N = 100 is knowingly misspecified here. The generator's true rho 0.7 gives N = 30.7 by Eq. 9, and the
-estimate 30.715 +/- 0.019 matches it. N = 100 stays as the naive comparator.
-Limitation: on real data the average correlation is estimated, and DSR p.15 warns it is unreliable when
-T < M(M-1)/2 (here 1248 < 4950).
-
-Cleanup on 2026-11-10 after review: reverted the unrequested CSCV speed-up (cached split plan, single-rank
-shortcut), README and extra .gitignore entries, and extra input validation. implied_n now treats a slightly
-negative sample correlation as 0 (N = M) instead of raising. Full backup of the removed code: tmp/backup_before_trim/.
-Every result number was unchanged by the cleanup (rerun compared line by line).
-Signed off by Mayo 2026-11-12 (part a). Plot deferred to step 6. Open: French-data bootstrap robustness (part b).
+### Engineering in step 4 (no result changed; every rerun compared line by line)
+CSCV ranks only the IS-best strategy out of sample (the same average rank, ties included; tested against the plain
+algorithm); CSCV refuses N < 2 and non-finite Sharpes; implied_n refuses a non-unit diagonal; AR(1) is a plain loop
+(bit-identical to lfilter); experiments use several CPU cores; requirements are numpy, scipy, pytest and the package.
+Experiments hold only settings, the loop and output: data download and checks live in pbo.french.load_returns,
+file writing in pbo.reporting.save_results (all six results files reran identical).
 
 ## Step 3 (done)
 - src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.
@@ -106,7 +186,7 @@ Signed off by Mayo 2026-11-12 (part a). Plot deferred to step 6. Open: French-da
 |---|---|---|---|
 | PSR at SR = benchmark | 0.5 (closed form, tested) | 0.5 | right |
 | Negative skew | lowers PSR (tested) | lowers | right |
-| Paper hedge fund | 0.913 (PAPER, SF p.10; ours 0.9134) | about 0.91 | right (value was shown in the question) |
+| Paper hedge fund | 0.913 (PAPER, SF p.10; ours 0.9134, RECOMPUTED by tests/test_psr_dsr.py) | about 0.91 | right (value was shown in the question) |
 | Best of 100 zero-edge, PSR(0) > 0.95 | 1983/2000 = 0.9915 (CI 0.986 to 0.995) | about 100% | right |
 | Best of 100 zero-edge, DSR > 0.95 | 1/2000 = 0.0005 (CI 0 to 0.0028); approx with V known 0.0015 | about 5% | wrong: DSR is much stricter |
 - 2026-11-10 review (paper check + hardcoding/logic audit): formulas and all step-3 constants match SF pp.8-11 and
@@ -114,9 +194,10 @@ Signed off by Mayo 2026-11-12 (part a). Plot deferred to step 6. Open: French-da
   experiment reports exact binomial intervals and states the V-known assumption.
 - 2026-11-10 external review of step 3: math correct, all paper examples reproduced. Fixed its findings:
   NaN/inf inputs raise; unsupported "about 0.0008" claim removed;
-  "upper bound" wording removed; ddof = 1 for V listed as our choice. Files unstaged until Mayo commits.
+  "upper bound" wording removed; ddof = 1 for V listed as our choice. Committed in 7355d1f.
 - Step 1 and step 2 signed off by Mayo (project owner) on 2026-11-10: TODO 1.39, 2.4, 2.21.
-- 2026-11-10 page check of all 51 constants: 44 match, 0 mismatch, 7 derived (docs/paper_check.md).
+- 2026-11-10 page check of all 51 constants: 44 match, 0 mismatch, 7 derived (docs/paper_check.md); 52 and 45 after
+  PBO_ACCEPT_LEVEL was added (2026-11-12).
   Second visual check of the 12 image-only values and SR0: all match.
 - Step 3 signed off by Mayo (project owner), 2026-11-10.
 
@@ -144,12 +225,13 @@ T = 992 (PBO p.25 gives 1,000, trimmed for S = 16), N = 100, q = 250, seed 20261
 | Null 2, SR 0 / 0.5 / 1 / 2 / 3 | 0.516 / 0.511 / 0.433 / 0.189 / 0.026 | falls to 0 | falls, then flattens | half right: it stays flat first, then falls |
 | Null 2, first SR with PBO < 0.1 | between 2 and 3 (only these grid points tried) | | about 2 | close, a bit low |
 
-Why flat at low SR: with 496 IS days the best of 99 noise strategies has an annual Sharpe near 1.7
+Why flat at low SR: with 496 IS days the best of 99 noise strategies has an annual Sharpe of about 1.8 (closed form E[max_99] x sqrt(250/496) = 1.79;
+UNVERIFIED, no repo code)
 (logic review, approximate). A real SR below that rarely wins IS, so PBO stays at the noise level 0.5.
 The spread is wide: one zero-edge dataset gave PBO 0.141, another 0.836. One CSCV run on one dataset is noisy.
 Consistent in direction with the paper's own examples: random walk PBO 55% (p.25), real seasonal effect 13% (p.27).
 
-- cscv.py speed-up by Mayo (block sums, each half computed once): 19x faster (0.20 s vs 3.73 s at S = 16).
+- cscv.py speed-up by Mayo (block sums, each half computed once): 19x faster (0.20 s vs 3.73 s at S = 16; UNVERIFIED one-off timing, no script).
   Same logits as the plain loop: tests/test_fast_cscv_matches_plain_algorithm. Null checks rerun: identical output.
 
 ## Predictions vs results (step 1)
@@ -164,7 +246,7 @@ Consistent in direction with the paper's own examples: random walk PBO 55% (p.25
 | Best of 10/45/100, 5y | 0.7/1.0/1.1 (right) | sim 0.688/0.984/1.119 | RECOMPUTED (best_of_n.py) |
 
 Simulation sits about 0.012 to 0.016 below the formula for every N. That matches the known overstatement
-of the Gumbel approximation: RECOMPUTED 0.0358 at n=10 (Eq. 2.4 minus the integral used in tests/test_minbtl.py;
+of the Gumbel approximation: UNVERIFIED 0.0358 at n=10 (one-off run, no repo code) (Eq. 2.4 minus the integral used in tests/test_minbtl.py;
 one-off run 2026-11-10, the test itself only asserts the sign),
 divided by sqrt(5) is 0.016.
 
@@ -180,10 +262,11 @@ divided by sqrt(5) is 0.016.
 - DROPPED: "about 2 years for N=7", oracle 2.4794 and the "2.46" note. Not printed in the paper.
 - Page numbers are the PSEUDO author copy (April 1, 2014), not the printed Notices pages.
 - Our choice, not a paper claim: ddof=0 in sharpe(). PSEUDO p.8 says "sample standard deviation" only.
+  Precedent: SF appendix A.4 code (get_Moments, pp.27-28, text extraction) divides moments by the number of
+  observations.
 - Our choice: TRIALS=2000 and the seed in best_of_n.py.
 - Assumption in all of step 1: iid returns. Annualizing with sqrt(periods) is wrong under autocorrelation (step 4).
 
 ## For the reviewer
 1. Check docs/paper_values.md against the PDFs in papers/. Each row has a page number.
 2. The PSEUDO pages are from the author copy. Confirm they match the Notices version if you hold that one.
-3. Sign off step 1 (TODO 1.39).

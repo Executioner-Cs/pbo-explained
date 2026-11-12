@@ -57,6 +57,49 @@ def dsr(sr, t, skew, kurt, n_trials, var_trials):
     return psr(sr, sr0(n_trials, var_trials), t, skew, kurt)
 
 
+def psr_false_positive(factor, t, level):
+    """Rate of PSR(0) > level at true SR = 0 when the variance of the sample mean is factor times its IID value.
+
+    Our derivation: sqrt(t) SR -> N(0, factor), and SF Eq. 11 uses sqrt(t - 1) with factor 1.
+    """
+    return 1 - norm.cdf(norm.ppf(level) / np.sqrt(np.asarray(factor) * (t - 1) / t))
+
+
+def ar1_psr_false_positive(phi, t, level):
+    """Rate of PSR(0) > level for a zero-Sharpe stationary Gaussian AR(1). Our derivation, not a paper result.
+
+    At SR = 0, sqrt(t) * SR -> N(0, F) with F the long-run variance factor of the sample mean, while SF Eq. 11
+    assumes F = 1. Returns (finite-t rate with F_t = 1 + 2 sum_{k<t} (1 - k/t) phi^k and Eq. 11's sqrt(t - 1),
+    large-t rate with F = (1 + phi)/(1 - phi)).
+    """
+    k = np.arange(1, t)
+    f_t = 1 + 2 * np.sum((1 - k / t) * phi**k)
+    finite = psr_false_positive(f_t, t, level)
+    limit = 1 - norm.cdf(norm.ppf(level) / math.sqrt((1 + phi) / (1 - phi)))
+    return finite, limit
+
+
+def newey_west_factor(x, lags):
+    """Long-run variance of the sample mean of x divided by its IID value, Bartlett weights (Newey and West 1987).
+
+    F = 1 + 2 sum_{h=1}^{lags} (1 - h/(lags + 1)) rho_h. Our correction for serial correlation; not in SF.
+    """
+    d = np.asarray(x, dtype=float) - np.mean(x)
+    if not 0 <= lags < len(d):
+        raise ValueError("lags must be at least 0 and below the series length")
+    var = d @ d
+    if var == 0:
+        raise ValueError("x has zero variance")
+    return 1 + 2 * sum((1 - h / (lags + 1)) * (d[:-h] @ d[h:]) / var for h in range(1, lags + 1))
+
+
+def psr_long_run(psr_value, factor):
+    """PSR with its variance multiplied by factor (our correction; tested at SR* = 0 only)."""
+    if not factor > 0:
+        raise ValueError("factor must be positive")
+    return norm.cdf(norm.ppf(psr_value) / math.sqrt(factor))
+
+
 def implied_n(corr):
     """Implied number of independent trials from an M x M correlation matrix (DSR Appendix 3, p.14).
 
@@ -68,8 +111,10 @@ def implied_n(corr):
         raise ValueError("corr must be a square matrix, at least 2 x 2")
     if not np.isfinite(c).all():
         raise ValueError("corr has NaN or inf (a strategy with zero variance gives NaN)")
+    if not np.allclose(np.diag(c), 1.0):
+        raise ValueError("corr must have a unit diagonal (a covariance matrix was passed?)")
     rho = (c.sum() - m) / (m * (m - 1))
-    # p.14: Eq. 9 runs from rho = 0 (N = M) to rho = 1 (N = 1). A slightly negative sample rho is noise
-    # around 0 for unrelated strategies, so it counts as 0 (N = M), never more trials than M.
+    # p.14: Eq. 9 runs from rho = 0 (N = M) to rho = 1 (N = 1). Our choice (the paper does not clamp): a slightly
+    # negative sample rho is noise around 0 for unrelated strategies, so it counts as 0 (N = M), never above M.
     rho = max(rho, 0.0)
     return rho + (1 - rho) * m

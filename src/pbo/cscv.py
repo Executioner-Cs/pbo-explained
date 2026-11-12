@@ -29,6 +29,8 @@ def cscv(m, s):
         raise ValueError("M has NaN or inf; argmax and ranks would silently misplace them")
     pairs = splits(s)                                 # checks S is positive and even
     t, n = m.shape
+    if n < 2:
+        raise ValueError("CSCV needs at least 2 strategies")
     if t % s:
         raise ValueError("T must divide into S equal blocks")
     blocks = m.reshape(s, t // s, n)                  # Second: S disjoint blocks, original order
@@ -53,12 +55,21 @@ def cscv(m, s):
         sumsqs = block_sumsq[chosen].sum(axis=1)
         means = sums / observations
         variances = np.maximum(sumsqs / observations - means * means, 0.0)
-        sharpes[start:start + len(chosen)] = (offset + means) / np.sqrt(variances)
+        with np.errstate(divide="ignore", invalid="ignore"):  # a zero variance is caught just below
+            sharpes[start:start + len(chosen)] = (offset + means) / np.sqrt(variances)
+    if not np.isfinite(sharpes).all():                # near-constant columns can cancel the variance to 0
+        raise ValueError("a subsample Sharpe is not finite (near-constant strategy)")
 
     combination_index = {is_b: i for i, (is_b, _) in enumerate(pairs)}
     complements = np.asarray([combination_index[oos_b] for _, oos_b in pairs])
-    best = np.argmax(sharpes, axis=1)                 # c, e. best IS strategy n*
-    oos_ranks = rankdata(sharpes[complements], method="average", axis=1)  # same rule as rank()
-    w = oos_ranks[np.arange(len(pairs)), best] / (n + 1)  # d, f. relative OOS rank omega
+    best = np.argmax(sharpes, axis=1)                 # c, e. best IS strategy n*; IS ties go to the first column
+    # d, f. OOS rank of the IS-best strategy, by the same average-rank rule as rank(): the number of strategies
+    # below it, plus half of the ties counting itself. Equal to ranking all N and picking n*, without the full sort.
+    oos = sharpes[complements]
+    selected = oos[np.arange(len(pairs)), best][:, None]   # OOS Sharpe of n* in each split
+    oos_rank = (oos < selected).sum(axis=1) + ((oos == selected).sum(axis=1) + 1) / 2
+    w = oos_rank / (n + 1)                            # relative OOS rank omega
     logits = np.log(w / (1 - w))                     # g. logit lambda
-    return np.mean(logits <= 0), logits               # Sec 3.1: PBO = share of logits <= 0
+    # Sec 3.1: PBO = integral of f up to 0. Counting logit = 0 is our reading; Def 2.2 (p.10) uses rank < N/2.
+    # See docs/cscv_notes.md.
+    return np.mean(logits <= 0), logits

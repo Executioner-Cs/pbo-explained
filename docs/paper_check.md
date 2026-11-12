@@ -7,7 +7,7 @@ which could not read values inside equation images.
 Pages viewed: PSEUDO 7, 9, 11. DSR 9, 10. PBO 9, 11, 13, 25, 26. SF 9, 10, 11, 12.
 (PSEUDO = backtest-pseudo.pdf, DSR = deflated-sharpe.pdf, PBO = backtest-prob.pdf, SF = sharpe-frontier.pdf.)
 
-Result: 44 match, 0 mismatch, 7 derived (tolerances, aliases, monthly = 12). 51 constants.
+Result: 45 match, 0 mismatch, 7 derived (tolerances, aliases, monthly = 12). 52 constants.
 
 | Constant | Value | Page | Printed on the page | Verdict |
 |---|---|---|---|---|
@@ -30,6 +30,7 @@ Result: 44 match, 0 mismatch, 7 derived (tolerances, aliases, monthly = 12). 51 
 | DSR_EX_DSR | 0.9004 | DSR 10 | "= 0.9004 < 0.95", formula uses sqrt(1249) = sqrt(T - 1) | match |
 | DSR_EX_N_ALT, _DSR_ALT | 46, 0.9505 | DSR 10 | "N=46 ... 0.9505" | match |
 | DSR_EX_N_NORMAL, _DSR_NORMAL | 88, 0.9505 | DSR 10 | "Normal returns ... 0.9505 after N=88" | match |
+| PBO_ACCEPT_LEVEL | 0.05 | PBO 14 | "reject models for which PBO is estimated to be greater than 0.05" (text extraction) | match |
 | *_TOL, DSR_EX_PPY, PSR_EX_PPY | | | half unit of last printed digit; alias of 250; monthly = 12 | derived |
 
 Notes from the check, now fixed in paper_values.py comments: PBO_EX_T cites pp.25-26; MinTRL cites p.11 only;
@@ -41,5 +42,16 @@ Separate eye-check of the values that sit inside equation images. All match, no 
 - SF p.11: -0.72, 5.78
 - DSR p.9: -3, 10
 - DSR p.10: 0.9004, 0.9505, and SR0 ~= 0.1132
+
+## Third visual check (2026-11-12)
+Pages rendered as images and read: DSR 8, 9, 10, 14, 15. SF 4, 8, 9, 10, 11. PBO 9, 10, 12, 13. PSEUDO 9, 11.
+All match the code and docs:
+- DSR p.8 Eq. 2: sqrt(T - 1), -g3 SR, (g4 - 1)/4 SR^2, SR0 = sqrt(V) E[max]. p.14 Eq. 8 and 9, rho bound
+  (-1/(M-1), 1]. p.15: "for short samples T < 1/2 M(M - 1)" ... "pointless".
+- SF p.8 Eq. 8 (variance over n; sigma-hat uses n - 1, Bessel). p.9 Eq. 11 sqrt(n - 1). p.11 Eq. 13 and
+  "applies to an asymptotic distribution".
+- PBO p.9 Def 2.1 (<= N/2), p.10 Def 2.2 (< N/2), p.12 steps f-g, p.13 Sec 3.1 integral up to 0.
+- PSEUDO p.9 Eq. 2.4 and bound sqrt(2 ln N); p.11 Eq. 3.2.
+Cited in step 4 text but checked in extracted text only (not as images): PBO 4, 14, 21, 22, 23; SF 15.
 
 Re-run this check whenever paper_values.py changes.

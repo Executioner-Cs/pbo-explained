@@ -119,7 +119,18 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 4.11 Measure false positive rate vs nominal level
 - [x] 4.12 Report Monte Carlo standard errors for every number
 - [x] 4.13 Calibration table saved to results/; plot deferred to step 6
-- [x] 4.14 Predictions compared and PROGRESS.md updated; part a signed off 2026-11-12 (part b, French bootstrap, open)
+- [x] 4.14 Predictions compared and PROGRESS.md updated; part a signed off 2026-11-12
+- [x] 4.15 Part b design approved, data snapshot frozen (SHA-256), predictions 1 to 8 recorded before any run
+- [x] 4.16 Block bootstrap and loader written and tested
+- [x] 4.17 Run experiments/french_bootstrap.py, save results/french_bootstrap.txt (2026-11-12)
+- [x] 4.18 Compare results with predictions 1 to 8; update PROGRESS.md
+- [x] 4.19a Follow-ups A (observed rates agree with the autocorrelation prediction), B (weekly PSR contains 5%),
+  C (L = 60 PBO effect did not replicate); designs recorded before the run
+- [x] 4.19c G1 Newey-West PSR, G2 AR(5) residuals, G4 PBO power under dependence, G6 sub-periods; designs
+  recorded before the run
+- [x] 4.19b Opdyke (2007) and Christie (2005) read; Opdyke first states explicitly that Christie's lag-0 closed
+  form holds under serial correlation (PROGRESS.md). Lo (2002) not available; not cited as a source
+- [x] 4.20 Step 4 signed off by Mayo 2026-11-12 (commit pending)
 
 ## Step 5. Real-data case study with costs
 - [ ] 5.1 Pick data source and asset. Record source and date range

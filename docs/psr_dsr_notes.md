@@ -13,14 +13,15 @@ Sources (page = PDF page):
   Defined for SR > SR* (p.10). Z_alpha = Z^-1[1 - alpha].
 - DSR, DSR Eq. 2 (p.8): PSR(SR0) with sqrt(T - 1), SR0 = sqrt(V[{SR_n}]) E[max_N] (E[max] as in step 1).
 - Kurtosis g4 is raw: Normal is g3 = 0, g4 = 3 (SF p.10, DSR p.10). TODO 3.2 closed.
-  Also checked by computation: excess kurtosis gives 0.920 vs the paper's 0.913, and 0.9018 vs 0.9004.
+  Also checked by computation (UNVERIFIED, one-off, no repo code): excess kurtosis gives 0.920 vs the paper's
+  0.913, and 0.9018 vs 0.9004.
 
 ## Paper examples used as tests (constants in src/pbo/paper_values.py)
 - PSR (SF p.10): monthly SR 0.458, 2 years: 0.982 Normal, 0.913 with skew -2.448 and kurt 10.164,
   0.953 with 3 years. The SR is printed to 3 digits; the tests allow for that rounding (psr_range).
-  Without it the 3-year case misses by 0.000005 (0.95351 vs 0.953).
+  Without it the 3-year case misses by 0.000005 (0.95351 vs 0.953; UNVERIFIED, one-off).
 - MinTRL (SF p.11): annual SR 2 vs 1 at 95%: 2.73 y daily, 2.83 weekly, 3.24 monthly; 4.99 monthly with HFR
-  skew -0.72, kurt 5.78. Our choice: q = 250 daily (DSR p.10), 52 weekly, 12 monthly. q = 252 also gives 2.73.
+  skew -0.72, kurt 5.78. Our choice: q = 250 daily (DSR p.10), 52 weekly, 12 monthly. q = 252 also gives 2.73 (UNVERIFIED, one-off).
 - DSR (DSR pp.9-10): annual SR 2.5, T = 1250, skew -3, kurt 10, V = 1/2 annual, N = 100: 0.9004.
   N = 46: 0.9505. Normal returns, N = 88: 0.9505. V is converted to per period by dividing by 250.
 

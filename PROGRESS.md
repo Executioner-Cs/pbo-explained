@@ -4,6 +4,7 @@
 - Setup: PROGRESS.md, .gitignore, pyproject.toml.
 - Packages: numpy, scipy, pytest, exact pins in requirements.txt (pytest's own dependencies install with it).
   2026-11-12: matplotlib and its 8 helper packages removed (unused, about 20 MB); add back for the step 6 plot.
+  2026-11-12: matplotlib==3.11.2 added back for Figure 1 (requirements.txt; pyproject extra "figure").
   2026-11-12: environment moved to WSL (.venv/bin/python, Python 3.13).
 - 2026-11-10: deleted experiments/check_oracle.py and docs/oracle_step1.md. Their numbers were typed in, and some are not in the paper.
 - 2026-11-10: all paper numbers now live in src/pbo/paper_values.py, each with page and equation. Tests and experiments import from there.
@@ -180,7 +181,7 @@ algorithm); CSCV refuses N < 2 and non-finite Sharpes; implied_n refuses a non-u
 Experiments hold only settings, the loop and output: data download and checks live in pbo.french.load_returns,
 file writing in pbo.reporting.save_results (all six results files reran identical).
 
-## Step 5 (in progress): a real strategy search
+## Step 5 (done; signed off by Mayo 2026-11-12): a real strategy search
 ### Design, approved 2026-11-12 before any run
 - 5.1 Data: Kenneth French, Fama-French research factors, daily (Mkt-RF and RF), percent to decimal. Frozen snapshot
   SHA-256 96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89 (202609 CRSP, downloaded 2026-11-12),
@@ -268,6 +269,23 @@ What these numbers do not say:
   (15/225) will not pass the Bonferroni-adjusted 5% test. Whether any other setting passes is reported, not predicted.
   Not passing means insufficient evidence of superiority, not proof of no skill.
 
+### Follow-up results (TODO 5.12), RECOMPUTED, run 2026-11-12 after design commit d944135
+Output: results/market_comparison.txt (all 93 settings). Same 13,664 days, 5 bps. Differences and se annualized.
+
+| Bartlett lags | Role | 15/225 difference (se) | 15/225 raw p | 15/225 adjusted p | Settings passing |
+|---|---|---|---|---|---|
+| 11 | primary | 0.130 (0.099) | 0.0943 | 1.0000 | 0 of 93 |
+| 0 | sensitivity | not printed | not printed | 1.0000 | 0 of 93 |
+| 44 | sensitivity | not printed | not printed | 1.0000 | 0 of 93 |
+
+- Prediction: 15/225 does not pass at 11 lags. Result: adjusted p = 1.0000. Right.
+- 15/225 has the smallest raw p of the 93 at 11 lags (0.0943). 43 of 93 differences are negative; consistent
+  with 50 of 93 above buy-and-hold in the original run.
+- Conclusion: at 5 bps, the selected setting's historical annual Sharpe exceeded the market's by 0.130. The paired
+  HAC test provides insufficient evidence of superiority: raw one-sided p = 0.094, and no setting passes the
+  Bonferroni-adjusted test across 93 settings. Sensitivity analyses reach the same decision. This does not
+  establish an absence of timing skill.
+
 
 ### Implementation review before the follow-up, 2026-11-12
 - Numerical stability: paired Sharpe inference uses the equivalent scalar influence projection, centered
@@ -279,8 +297,8 @@ What these numbers do not say:
   loader rejects missing columns and incomplete windows. No grid, cost, prediction, or primary analysis changed.
 - RECOMPUTED verification: 151 focused tests and 224 full-suite tests pass. A rerun of the original MA experiment
   reproduced results/ma_crossover.txt exactly with file writing disabled. The new market-comparison experiment
-  remains unrun; its reporting pipeline was exercised only with synthetic data and a stubbed statistic.
-- Review record and mathematical provenance: docs/review_step5.md. Step 5 sign-off and TODO 5.12 remain open.
+  was then unrun; its reporting pipeline was exercised only with synthetic data and a stubbed statistic.
+- Review record and mathematical provenance: docs/review_step5.md. At the time of this review 5.12 had not run.
 
 ## Step 3 (done)
 - src/pbo/psr_dsr.py: psr (SF Eq. 11), min_trl (SF Eq. 13), sr0 and dsr (DSR Eq. 2). Notes: docs/psr_dsr_notes.md.
@@ -376,3 +394,12 @@ divided by sqrt(5) is 0.016.
 ## For the reviewer
 1. Check docs/paper_values.md against the PDFs in papers/. Each row has a page number.
 2. The PSEUDO pages are from the author copy. Confirm they match the Notices version if you hold that one.
+
+
+### Step 6 final review, 2026-11-12
+- Manuscript and Figure 1 reviewed against saved results. Clarified the test-suite description and the
+  stationarity/moment/dependence assumptions behind HAC inference; these are not established for the market history.
+- RECOMPUTED: all 224 tests pass. The saved analytic curve agrees with an independently evaluated Normal-tail
+  expression to its six-decimal precision. The plotted simulation points and intervals match calibration.txt.
+- TODO 6.5 complete. The stated unresolved pooled calculation and working-paper provenance limits remain explicit.
+  No commit or push was performed. TODO 6.7 remains the owner's decision.

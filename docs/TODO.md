@@ -130,7 +130,7 @@ Formulas named here are UNVERIFIED until checked on the paper page.
   recorded before the run
 - [x] 4.19b Opdyke (2007) and Christie (2005) read; Opdyke first states explicitly that Christie's lag-0 closed
   form holds under serial correlation (PROGRESS.md). Lo (2002) not available; not cited as a source
-- [x] 4.20 Step 4 signed off by Mayo 2026-11-12 (commit pending)
+- [x] 4.20 Step 4 signed off by Mayo 2026-11-12 (commit 61c0ede)
 
 ## Step 5. Real-data case study with costs
 - [x] 5.1 Pick data source and asset. Record source and date range (PROGRESS.md, step 5 design)
@@ -143,14 +143,14 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 5.8 Run CSCV, PSR, DSR without costs
 - [x] 5.9 Run with costs
 - [x] 5.10 Compare. Save to results/ (results/ma_crossover.txt, PROGRESS.md step 5 results)
-- [ ] 5.11 Update PROGRESS.md. Reviewer signs off step 5
-- [ ] 5.12 Follow-up: Sharpe vs market, paired HAC, Bonferroni over 93 (design in PROGRESS.md, step 5)
+- [x] 5.11 Update PROGRESS.md. Reviewer signs off step 5 (signed off by Mayo 2026-11-12)
+- [x] 5.12 Follow-up: Sharpe vs market, paired HAC, Bonferroni over 93 (PROGRESS.md, step 5; results/market_comparison.txt)
 
 ## Step 6. Short write-up
-- [ ] 6.1 Outline: question, method, results, limits
-- [ ] 6.2 Every number labelled PAPER, RECOMPUTED or UNVERIFIED
-- [ ] 6.3 Figures from results/ only
-- [ ] 6.4 Limits section: what the calibration showed breaks
-- [ ] 6.5 Reviewer reads it
-- [ ] 6.6 Final pass on UNVERIFIED list
-- [ ] 6.7 Mayo decides on git commit and push
+- [x] 6.1 Outline: question, method, results, limits (docs/writeup.md, approved by Mayo 2026-11-12)
+- [x] 6.2 Every number labelled PAPER, RECOMPUTED or UNVERIFIED (docs/writeup.md; checked against results/ 2026-11-12)
+- [x] 6.3 Figures from results/ only (results/figure1_psr_ar1.png from results/calibration.txt and results/psr_ar1_curve.txt)
+- [x] 6.4 Limits section: what the calibration showed breaks (docs/writeup.md, Section 4)
+- [x] 6.5 Reviewer reads it (docs/writeup.md and Figure 1 reviewed 2026-11-12)
+- [x] 6.6 Final pass on UNVERIFIED list (docs/writeup.md, "Unresolved claims")
+- [x] 6.7 Mayo decides on git commit and push (local commit approved; push deferred, 2026-11-12)

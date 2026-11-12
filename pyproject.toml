@@ -16,6 +16,9 @@ dependencies = [
 dev = [
     "pytest>=9.2,<10",
 ]
+figure = [
+    "matplotlib>=3.11,<4",   # step 6 figure only (experiments/figure_psr_ar1.py)
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

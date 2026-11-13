@@ -1,6 +1,6 @@
 # Reproducibility
 
-How to rebuild every number, table and figure in `final-research-paper.pdf`, and what was verified for this version.
+How to rebuild every number, table and figure in `working-paper.pdf`, and what was verified for this version.
 
 ## 1. Environment
 
@@ -76,13 +76,13 @@ outputs, run in a copy:
 mkdir ~/pbo_repro && tar --exclude=.venv --exclude=.git -cf - . | tar -xf - -C ~/pbo_repro
 cd ~/pbo_repro && cp -r results results_orig && export PYTHONPATH=$PWD/src
 for s in best_of_n dsr_false_positives null_checks calibration french_bootstrap french_followups g6_corrected \
-         ma_crossover market_comparison case_study_checks performance_checks manuscript_numbers review_checks submission_figures; do
+         ma_crossover market_comparison case_study_checks performance_checks manuscript_numbers review_checks build_paper_figures; do
   /path/to/repo/.venv/bin/python experiments/$s.py
 done
 for f in results_orig/*.txt; do cmp -s "$f" "results/$(basename "$f")" && echo "same $f" || echo "DIFF $f"; done
 ```
 
-`manuscript_numbers.py` reads other saved results, so run it after them; `submission_figures.py` runs last.
+`manuscript_numbers.py` reads other saved results, so run it after them; `build_paper_figures.py` runs last.
 
 | Script | Output in `results/` | Wall time (12 cores) | Verified |
 |---|---|---|---|
@@ -99,7 +99,7 @@ for f in results_orig/*.txt; do cmp -s "$f" "results/$(basename "$f")" && echo "
 | `performance_checks.py` | `performance_checks.txt` | 11 s | see note 2 |
 | `manuscript_numbers.py` | `manuscript_numbers.txt` | 11 s | identical |
 | `review_checks.py` | `review_checks.txt` | see final execution log | final continuation rerun recorded separately |
-| `submission_figures.py` | `psr_ar1_curve.txt`, `fig7_dsr_vs_n.txt`; PDFs in `docs/submission/figures/` | 30 s | both text files identical |
+| `build_paper_figures.py` | `psr_ar1_curve.txt`, `fig7_dsr_vs_n.txt`; PDFs in `docs/source/figures/` | 30 s | both text files identical |
 
 1. `french_followups.txt` was regenerated with the current partial-final-block correction. The original is preserved in
    the historical results tree at commit `f1f8a3e`. L = 60 changes 0.0538 to 0.0539 (z +1.72 to +1.71); the early-period
@@ -112,12 +112,10 @@ for f in results_orig/*.txt; do cmp -s "$f" "results/$(basename "$f")" && echo "
 ## 5. Paper and summary
 
 ```bash
-cd docs/submission
-tectonic final-research-paper.tex        # Tectonic 0.15.0; runs BibTeX itself; downloads its TeX bundle on first use
-tectonic research-brief.tex
+python scripts/build_paper.py          # Tectonic 0.15.0 must be installed
 ```
 
-The final page count, actual visual inspection and PDF hashes are recorded in `release-verification.md` and the public release checksums. Tectonic can emit underfull bibliography-box and repeated-BibTeX consistency warnings; those are not a warning-free build. Undefined citations and overfull boxes are checked separately, followed by visual inspection.
+The final page count, actual visual inspection and PDF hashes are recorded in `verification.md` and the public release checksums. Tectonic can emit underfull bibliography-box and repeated-BibTeX consistency warnings; those are not a warning-free build. Undefined citations and overfull boxes are checked separately, followed by visual inspection.
 
 ## 6. Seeds
 
@@ -145,12 +143,12 @@ From the repository root:
 .venv/bin/python experiments/delayed_alpha.py
 ```
 
-The [pre-run design](evidence/delayed-alpha-design.md) is exploratory and post hoc. The script writes `results/delayed_alpha.txt` and `results/delayed_alpha_bootstrap.npz`, including all 93 observed alphas and 2,000 joint bootstrap vectors. Fixed seed 20261118, execution delay 2 and mean block 20 are modeling choices. Expected result: SPA p = 0.084, with Monte Carlo s.e. 0.0062. This weakens the baseline borderline alpha inference; it does not prove alpha is absent.
+The [pre-run design](methods/delayed-alpha-design.md) is exploratory and post hoc. The script writes `results/delayed_alpha.txt` and `results/delayed_alpha_bootstrap.npz`, including all 93 observed alphas and 2,000 joint bootstrap vectors. Fixed seed 20261118, execution delay 2 and mean block 20 are modeling choices. Expected result: SPA p = 0.084, with Monte Carlo s.e. 0.0062. This weakens the baseline borderline alpha inference; it does not prove alpha is absent.
 
 ## 9. Release verification and scope
 
-See [release-verification.md](release-verification.md) for the actual tests, principal reruns, figure comparisons, page inspection and PDF digests. The final suite passed 296 tests with the frozen archives. A fresh dependency environment also passed 296 tests; the isolated main experiments used copied, hash-checked archives on the same machine. The full internal review archive is preserved locally and is not required to execute these public reproduction commands.
+See [verification record](verification.md) for the actual tests, principal reruns, figure comparisons, page inspection and PDF digests. The final suite passed 296 tests with the frozen archives. A fresh dependency environment also passed 296 tests; the isolated main experiments used copied, hash-checked archives on the same machine. Private internal review notes are not required to reproduce any public result.
 
-Tectonic 0.15.0 builds both documents from this folder. It downloads a TeX bundle on first use; the toolchain is not hermetically locked. Underfull bibliography lines and a repeated-BibTeX consistency/rerun warning were observed; no undefined citations or overfull boxes were found, followed by actual page inspection. Figure PDFs contain timestamps, so numerical and rendered equality are distinguished from binary equality. The PDFs have searchable text and embedded fonts but are untagged.
+The build script runs Tectonic 0.15.0 on docs/source/ and writes both PDFs into docs/ and its logs into .local/build/. It downloads a TeX bundle on first use; the toolchain is not hermetically locked. Underfull bibliography lines and a repeated-BibTeX consistency/rerun warning were observed; no undefined citations or overfull boxes were found, followed by actual page inspection. Figure PDFs contain timestamps, so numerical and rendered equality are distinguished from binary equality. The PDFs have searchable text and embedded fonts but are untagged.
 
 Public release tags identify immutable source revisions. The original reviewed baseline was commit `68882f58251dfa98adb0949c02f333d481ea2643` plus the preserved working tree. The final paper does not embed a later commit hash, avoiding a self-referential commit; release metadata and SHA-256 identify the exact artifact.

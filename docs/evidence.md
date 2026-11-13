@@ -1,6 +1,6 @@
 # Claim-to-evidence map
 
-All empirical values below are **RECOMPUTED** from the supplied code and saved outputs. Printed source-paper values are **PAPER**, with page-level provenance in [paper_check.md](../paper_check.md) and `src/pbo/paper_values.py`. No claim below is an external peer-review certification.
+All empirical values below are **RECOMPUTED** from the supplied code and saved outputs. Printed source-paper values are **PAPER**, with page-level provenance in [paper-checks.md](paper-checks.md) and `src/pbo/paper_values.py`. No claim below is an external peer-review certification.
 
 | Final claim | Producing script | Saved evidence | Interpretation |
 |---|---|---|---|
@@ -20,6 +20,6 @@ All empirical values below are **RECOMPUTED** from the supplied code and saved o
 | Baseline alpha is 3.16% a year, HAC t 2.71; alpha SPA is borderline | `experiments/review_checks.py` | Items 5, 10–11 | Post hoc; p spans 0.035–0.065 across bootstrap choices; not a confirmatory discovery |
 | One extra execution day gives alpha SPA p = 0.084 | `experiments/delayed_alpha.py` | `results/delayed_alpha.txt`, `results/delayed_alpha_bootstrap.npz` | 168/2000 exceedances; Monte Carlo s.e. 0.0062; execution-sensitive evidence |
 | Walk-forward Sharpe 0.466 versus 0.536, difference -0.070 with s.e. 0.107 | `experiments/performance_checks.py` | `results/performance_checks.txt` | Selector diagnostic on reused history; no established deterioration |
-| All seven figures reconstruct | `experiments/submission_figures.py` | `docs/submission/figures/`; saved analytic curves | Rendered pixel equality checked; PDF binary identity not claimed |
+| All seven figures reconstruct | `experiments/build_paper_figures.py` | `docs/source/figures/`; saved analytic curves | Rendered pixel equality checked; PDF binary identity not claimed |
 
-The [reproduction instructions](reproducibility.md) give commands, data hashes, ordering and seeds. The [release verification](release-verification.md) records actual execution scope. The final paper's correction appendix and Git history retain withdrawn analyses and earlier interpretations, without duplicate result copies in the live tree.
+The [reproduction instructions](reproducibility.md) give commands, data hashes, ordering and seeds. The [release verification](verification.md) records actual execution scope. The final paper's correction appendix and Git history retain withdrawn analyses and earlier interpretations, without duplicate result copies in the live tree.

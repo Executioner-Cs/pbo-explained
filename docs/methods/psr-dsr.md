@@ -1,8 +1,8 @@
 # PSR, MinTRL, DSR notes (step 3)
 
 Sources (page = PDF page):
-- SF = papers/sharpe-frontier.pdf, Bailey and Lopez de Prado, "The Sharpe Ratio Efficient Frontier". Read pp.8-11.
-- DSR = papers/deflated-sharpe.pdf, Bailey and Lopez de Prado, "The Deflated Sharpe Ratio". Read pp.8-10, 13.
+- SF = .local/literature/sharpe-inference/sharpe-frontier.pdf, Bailey and Lopez de Prado, "The Sharpe Ratio Efficient Frontier". Read pp.8-11.
+- DSR = .local/literature/backtest-overfitting/deflated-sharpe.pdf, Bailey and Lopez de Prado, "The Deflated Sharpe Ratio". Read pp.8-10, 13.
 
 ## Formulas (code: src/pbo/psr_dsr.py)
 - SR estimator variance, SF Eq. 8 (p.8): (1 + SR^2/2 - g3 SR + (g4 - 3)/4 SR^2) / n.

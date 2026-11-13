@@ -597,7 +597,7 @@ How often do standard backtest hurdles pass strategies with no edge when their a
 \textbf{Data availability.} Kenneth R.\ French Data Library, daily 49 Industry Portfolios and Fama--French research factors, 202609 CRSP release, downloaded 12 November 2026; SHA-256 and archived copies in Appendix~\ref{app:repro}. \textbf{Code availability.} The accompanying repository (MIT licence); the exact commit is recorded with any public release. \textbf{Funding and conflicts of interest.} None declared. \textbf{Ethics.} Not applicable: public aggregate data, no human subjects. \textbf{Assistance and responsibility.} AI tools assisted code review, literature checks, editing and internal adversarial review. Their reports are not independent human peer review; the author retains responsibility for verifying the submission. \textbf{Review status.} The paper has not been peer reviewed.
 
 \bibliographystyle{plainnat}
-\bibliography{final-references}
+\bibliography{references}
 
 \appendix
 
@@ -757,8 +757,8 @@ Both archives are preserved by the Internet Archive, and an independent download
 \item install: \texttt{pip install -r requirements.txt};
 \item run the tests: \texttt{python -m pytest -q};
 \item regenerate one result: \texttt{python experiments/}\textit{name}\texttt{.py}, for example \texttt{python experiments/calibration.py};
-\item regenerate the figures: \texttt{python experiments/submission\_figures.py}.
+\item regenerate the figures: \texttt{python experiments/build\_paper\_figures.py}.
 \end{itemize}
-The full sequence, run times and comparison procedure are in the file \texttt{reproducibility.md} next to this paper.
+The full sequence, run times and comparison procedure are documented at \url{https://github.com/Executioner-Cs/pbo-explained/blob/main/docs/reproducibility.md}.
 
 \end{document}

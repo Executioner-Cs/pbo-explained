@@ -51,10 +51,10 @@ Both exact ZIPs have timestamped recovery routes independently downloaded and ve
 - [Factor capture, 20261030074337](https://web.archive.org/web/20261030074337id_/https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip).
 
 The industry capture was requested for the existing public provider URL under the owner's preservation request.
-Both returned ZIPs match the hashes and byte lengths listed in [reproducibility.md](submission/reproducibility.md).
+Both returned ZIPs match the hashes and byte lengths listed in [reproducibility.md](reproducibility.md).
 This establishes verified retrieval at that time, not perpetual availability or data redistribution rights.
 The ZIPs remain excluded from Git and from the software licence. A fresh-environment reproduction record is
-maintained in docs/submission/reproducibility.md; keep identity verification separate from execution evidence.
+maintained in docs/reproducibility.md; keep identity verification separate from execution evidence.
 
 The manuscript's paper PDFs are also excluded from Git. References and the page-check record document their
 identity and verification scope; local PDF availability should not be confused with immutable data provisioning.

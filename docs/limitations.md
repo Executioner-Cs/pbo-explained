@@ -35,14 +35,14 @@ Ordered by how much each would change a reader's assessment. "Fixable" means fix
 
 | # | Issue |
 |---|---|
-| P1 | No external peer review. The internal review described in `release-verification.md` is not independent |
+| P1 | No external peer review. The internal review described in `verification.md` is not independent |
 | P2 | Contribution is incremental relative to Ledoit and Wolf (2008) and the 2026 papers; a practitioner or replication venue fits it better than a methods journal |
 | P3 | Author contributions and any disclosure wording must be completed for a specific venue |
 | P4 | Mertens (2002) and Memmel (2003) not examined directly; Mertens is cited as attributed by Bailey and Lopez de Prado (2012) |
 
 ## Final continuation
 
-Current public issue dispositions are consolidated in `release-verification.md`. Assistance and author responsibility are now
+Current public issue dispositions are consolidated in `verification.md`. Assistance and author responsibility are now
 disclosed in the paper; venue-specific wording remains the author's responsibility. The final PDF is untagged. Modern-method
 comparisons, broader calibration and prospective/tradable validation remain future studies rather than demonstrated defects
 that can be repaired by editing this manuscript.

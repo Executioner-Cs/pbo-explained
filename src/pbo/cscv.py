@@ -1,4 +1,4 @@
-"""CSCV and PBO. PBO paper (papers/backtest-prob.pdf), Algorithm 2.3, pp.11-12, and Sec 3.1, p.13."""
+"""CSCV and PBO. PBO paper (.local/literature/backtest-overfitting/backtest-prob.pdf), Algorithm 2.3, pp.11-12, and Sec 3.1, p.13."""
 from itertools import combinations
 
 import numpy as np
@@ -75,5 +75,5 @@ def cscv(m, s):
     w = oos_rank / (n + 1)                            # relative OOS rank omega
     logits = np.log(w / (1 - w))                     # g. logit lambda
     # Sec 3.1: PBO = integral of f up to 0. Counting logit = 0 is our reading; Def 2.2 (p.10) uses rank < N/2.
-    # See docs/methods/cscv_notes.md.
+    # See docs/methods/cscv.md.
     return np.mean(logits <= 0), logits

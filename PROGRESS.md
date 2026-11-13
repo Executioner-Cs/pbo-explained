@@ -1,6 +1,6 @@
 # Current research state
 
-Authoritative paper: [final-research-paper.pdf](docs/submission/final-research-paper.pdf), with [source](docs/submission/final-research-paper.tex), [brief](docs/submission/research-brief.pdf) and [release verification](docs/submission/release-verification.md).
+Authoritative paper: [working-paper.pdf](docs/working-paper.pdf), with [source](docs/source/working-paper.tex), [brief](docs/research-brief.pdf) and [release verification](docs/verification.md).
 
 The full chronological design, prediction, correction and owner-sign-off log is preserved in commit `f1f8a3e` and its ancestors. This current-state summary replaces duplicated drafts and old result copies in the live tree; it does not erase that history.
 
@@ -10,7 +10,7 @@ The full chronological design, prediction, correction and owner-sign-off log is 
 - RECOMPUTED: all 13 principal experiment scripts ran in an isolated source copy with fresh dependencies on the same machine; their text outputs matched the current results byte for byte.
 - RECOMPUTED: seven reconstructed figures match rendered pixels; the two analytic curves match saved text bytes. PDF timestamps prevent a general binary-identity claim.
 - The 34-page paper and one-page brief were rendered and inspected, with exact rendered equality used for unchanged pages after repairs. No clipping, missing glyphs, overlap or unresolved citation placeholders was found. PDFs remain untagged.
-- Exact input digests and acquisition commands are in [data_manifest.md](docs/data_manifest.md) and [reproducibility.md](docs/submission/reproducibility.md). Source PDFs and data archives are not distributed.
+- Exact input digests and acquisition commands are in [data-manifest.md](docs/data-manifest.md) and [reproducibility.md](docs/reproducibility.md). Source PDFs and data archives are not distributed.
 
 ## Principal findings and scope
 
@@ -36,3 +36,7 @@ Retrospective choices and limited multiplicity families; one vendor, market and 
 ## Public-release preparation
 
 The owner authorized public GitHub preparation and requested a final-only live tree. Common credential/machine-path patterns were absent in the screened tracked history and release files. Internal review archives are preserved locally and excluded from publication. Current release artifacts have SHA-256 checksums, reproduction instructions and CI. Earlier files are preserved through Git history rather than duplicate live filenames. LinkedIn copy is prepared separately; no social post or tagging notification has been sent.
+
+## Publication navigation
+
+All public documents live in docs/: one working paper, one research brief, their sources in docs/source/ and the supporting documentation. Local source PDFs, the internal review archive and build logs live in the Git-ignored .local/. The README includes a reproducible animated map of the saved case-study checks and a static alternative. Moving sources changed only the paper's documentation URL; pages 1–33 and the brief retain rendered equality, and the changed final page was visually checked. A later rebuild changed only the figure command printed on page 34 (experiments/build_paper_figures.py); pages 1–33 and the brief again matched in extracted text and rendered pixels.

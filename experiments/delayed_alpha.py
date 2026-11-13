@@ -1,4 +1,4 @@
-"""Exploratory delayed alpha sensitivity; design in docs/submission/evidence/delayed-alpha-design.md.
+"""Exploratory delayed alpha sensitivity; design in docs/methods/delayed-alpha-design.md.
 
 Run from repository root: .venv/bin/python experiments/delayed_alpha.py
 """

@@ -1,6 +1,6 @@
 # CSCV notes (step 2)
 
-Source: papers/backtest-prob.pdf. Bailey, Borwein, Lopez de Prado, Zhu,
+Source: .local/literature/backtest-overfitting/backtest-prob.pdf. Bailey, Borwein, Lopez de Prado, Zhu,
 "The Probability of Backtest Overfitting". Page = PDF page. Pages read as images: 9 to 14, 25 to 27. p.28 seen only as extracted text.
 
 ## Procedure (Algorithm 2.3, pp.11-12)
@@ -44,7 +44,7 @@ AB|CD, AC|BD, AD|BC, BC|AD, BD|AC, CD|AB.
 ## Paper inconsistencies to flag
 - p.11: "if S = 16, we will form 12,780 combinations" (printed again on p.22). C(16, 8) = 12,870. Typo in the paper. RESOLVED:
   code counts by Eq. 2.3; test_paper_s16_count_is_a_typo asserts 12,870 and != the printed 12,780;
-  the page review (docs/paper_check.md) confirms 12,780 is what p.11 prints.
+  the page review (docs/paper-checks.md) confirms 12,780 is what p.11 prints.
 - p.12 step c: "nth column of J (the testing set)". J is the training set (IS); step d uses J-bar as
   the test set. The code uses J as IS. Typo in the paper.
 - Def 2.1 (p.9) uses "<= N/2", Def 2.2 (p.10) uses "< N/2". Sec 3.1's integral up to 0 counts the boundary

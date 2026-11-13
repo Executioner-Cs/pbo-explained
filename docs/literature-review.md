@@ -1,7 +1,7 @@
 # Literature review and novelty assessment
 
-Access levels: **Full** = full text read by the project (local PDF in `papers/` or hosted copy), with page-level
-locators recorded in `docs/paper_check.md` or `PROGRESS.md`. **Partial** = specific pages or sections read.
+Access levels: **Full** = full text read by the project (local PDF in `.local/literature/` or hosted copy), with page-level
+locators recorded in `docs/paper-checks.md` or `PROGRESS.md`. **Partial** = specific pages or sections read.
 **Abstract** = abstract, index record or secondary description only. **Metadata** = bibliographic record only.
 All DOIs, volumes and pages were checked against Crossref on 2026-11-12 unless noted.
 
@@ -79,7 +79,7 @@ or that tabulate DSR null rates, may exist and were not found. The three 2026 Lo
 
 ## 6. Access record for the 2026 papers
 
-Read 2026-11-13 from owner-supplied PDFs in `papers/` (not committed; third-party copyright). Supplementary proofs were
+Read 2026-11-13 from owner-supplied PDFs in `.local/literature/` (not committed; third-party copyright). Supplementary proofs were
 not checked.
 
 | Paper | Version read | Local file SHA-256 |

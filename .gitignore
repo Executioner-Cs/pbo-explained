@@ -1,14 +1,14 @@
 .venv/
 __pycache__/
 .pytest_cache/
-papers/
-tmp/
 *.egg-info/
+
+# Local only: source PDFs, review archive, build logs. Backed up separately.
+.local/
+# Frozen input snapshots; see docs/data-manifest.md.
 data/
 
-# Local review archives and disposable build products.
-/docs/submission/review/
-/docs/pbo-paper.pdf
+# LaTeX build products.
 *.aux
 *.bbl
 *.blg

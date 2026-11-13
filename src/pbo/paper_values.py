@@ -1,18 +1,18 @@
-"""Numbers quoted from the papers in papers/. Page = PDF page of that file.
+"""Numbers quoted from the papers in .local/literature/. Page = PDF page of that file.
 
 Every constant used by tests/ or experiments/ that comes from a paper lives here, with its source.
 Tolerance rule: half a unit in the last digit the paper prints.
 
-PSEUDO = papers/backtest-pseudo.pdf
+PSEUDO = .local/literature/backtest-overfitting/backtest-pseudo.pdf
     Bailey, Borwein, Lopez de Prado, Zhu, "Pseudo-Mathematics and Financial Charlatanism",
     author copy dated April 1, 2014 (journal version: Notices of the AMS 61(5), 2014).
-DSR = papers/deflated-sharpe.pdf
+DSR = .local/literature/backtest-overfitting/deflated-sharpe.pdf
     Bailey, Lopez de Prado, "The Deflated Sharpe Ratio", J. Portfolio Management, 2014.
-PBO = papers/backtest-prob.pdf
+PBO = .local/literature/backtest-overfitting/backtest-prob.pdf
     Bailey, Borwein, Lopez de Prado, Zhu, "The Probability of Backtest Overfitting".
-SF = papers/sharpe-frontier.pdf
+SF = .local/literature/sharpe-inference/sharpe-frontier.pdf
     Bailey, Lopez de Prado, "The Sharpe Ratio Efficient Frontier", J. of Risk, 2012.
-Verification record: docs/paper_check.md.
+Verification record: docs/paper-checks.md.
 """
 
 # DSR p.10, numerical example: 250 observations per year (daily data).
@@ -39,7 +39,7 @@ DSR_EX_PPY = PERIODS_PER_YEAR
 DSR_EX_SR0 = 0.1132
 DSR_EX_SR0_TOL = 0.00005
 
-# PBO = papers/backtest-prob.pdf. Bailey, Borwein, Lopez de Prado, Zhu, "The Probability of Backtest Overfitting".
+# PBO = .local/literature/backtest-overfitting/backtest-prob.pdf. Bailey, Borwein, Lopez de Prado, Zhu, "The Probability of Backtest Overfitting".
 # PBO p.9: Sharpe ratios IS and OOS for N = 3, and their ranks (1 = worst).
 PBO_RANK_EX_R_IS = (0.5, 1.1, 0.7)
 PBO_RANK_EX_RANK_IS = (1, 3, 2)
@@ -65,7 +65,7 @@ PBO_S16_PRINTED = 12780
 # PBO pp.25-26: "1,000 daily prices (about 4 years)" in both worked examples (first p.25, second p.26).
 PBO_EX_T = 1000
 
-# SF = papers/sharpe-frontier.pdf. Bailey, Lopez de Prado, "The Sharpe Ratio Efficient Frontier", J. of Risk, 2012.
+# SF = .local/literature/sharpe-inference/sharpe-frontier.pdf. Bailey, Lopez de Prado, "The Sharpe Ratio Efficient Frontier", J. of Risk, 2012.
 # SF pp.9-10, PSR example: hedge fund, "monthly track record over the last two years" (p.9).
 # Non-annualized monthly SR 0.458. PSR(0) = 0.982 if Normal (skew 0, kurt 3), 0.913 with skew -2.448 and
 # kurt 10.164, and 0.953 with 3 years instead of 2 (p.10).

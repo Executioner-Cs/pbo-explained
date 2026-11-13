@@ -77,7 +77,7 @@ def test_winner_flips_to_loser_gives_pbo_1():
 
 def test_median_oos_rank_counts_as_overfit():
     # N = 3. IS winner always lands at OOS rank 2 = the median: omega = 1/2, logit = 0.
-    # Our choice: logit 0 counts (integral up to 0, p.13). FLAGGED in docs/methods/cscv_notes.md.
+    # Our choice: logit 0 counts (integral up to 0, p.13). FLAGGED in docs/methods/cscv.md.
     pbo, logits = cscv(matrix([UP, MID], [MID, UP], [DOWN, DOWN]), 2)
     assert logits == pytest.approx([0.0, 0.0])
     assert pbo == 1

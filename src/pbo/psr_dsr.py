@@ -1,4 +1,4 @@
-"""PSR, MinTRL (SF = papers/sharpe-frontier.pdf) and DSR (papers/deflated-sharpe.pdf).
+"""PSR, MinTRL (SF = .local/literature/sharpe-inference/sharpe-frontier.pdf) and DSR (.local/literature/backtest-overfitting/deflated-sharpe.pdf).
 
 All Sharpe ratios are non-annualized, in the frequency of the returns (SF p.9).
 kurt is raw kurtosis, 3 for Normal returns (SF p.10, DSR p.10), not excess kurtosis.

@@ -1,11 +1,11 @@
-"""Vector figures for docs/submission/final-research-paper.tex. Output: docs/submission/figures/fig1..fig7.pdf.
+"""Vector figures for docs/source/working-paper.tex. Output: docs/source/figures/fig1..fig7.pdf.
 
 No simulation runs here. Points come from saved results/ files. Two analytic curves are first written to results/
 and then plotted from the saved file: results/psr_ar1_curve.txt (large-sample PSR rate under AR(1)) and
 results/fig7_dsr_vs_n.txt (DSR of the selected rule against the assumed trial count). The best-of-N curves are
 evaluated directly (PSEUDO Eq. 2.4 and exact Normal-maximum quadrature).
 
-Run from the repository root, after the experiments:  .venv/bin/python experiments/submission_figures.py
+Run from the repository root, after the experiments:  .venv/bin/python experiments/build_paper_figures.py
 """
 import math
 import re
@@ -49,7 +49,7 @@ def save_dsr_curve():
     save_results("fig7_dsr_vs_n", ["N DSR"] + [f"{n:.0f} {dsr(sr, len(x), skew(x), kurtosis(x, fisher=False), n, v):.6f}"
                                                for n in grid])
 
-OUT = Path(__file__).resolve().parents[1] / "docs" / "submission" / "figures"
+OUT = Path(__file__).resolve().parents[1] / "docs" / "source" / "figures"
 BLUE, ORANGE, GREY, RED, GREEN = "#0072B2", "#E69F00", "#6b6b6b", "#D55E00", "#009E73"
 CI = r"\[([\d.]+), ([\d.]+)\] \((\d+)/(\d+)\)"
 plt.rcParams.update({"font.size": 10, "font.family": "serif", "mathtext.fontset": "dejavuserif",

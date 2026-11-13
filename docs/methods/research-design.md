@@ -90,7 +90,7 @@ The limited number of datasets and mean-only output do not justify a general pow
 
 ## 5. Real-data conditional nulls and correction history
 
-The exact ZIP identities, dates, source URLs and transformations are listed in [data_manifest.md](data_manifest.md).
+The exact ZIP identities, dates, source URLs and transformations are listed in [data-manifest.md](../data-manifest.md).
 For the full-window bootstrap, each industry is demeaned once over the observed window. Conditional on that
 empirical source distribution, circular row resampling has zero expected mean per industry. This is a constructed
 null; it does not establish that the original economic population had zero expected returns.

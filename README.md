@@ -28,7 +28,7 @@ No implementable trading edge or new statistic is claimed.
 
 Supporting documents in [`docs/submission/`](docs/submission/): claim-by-claim [evidence audit](docs/submission/evidence-audit.md),
 [literature review](docs/submission/literature-review.md), [limitations and open issues](docs/submission/limitations-and-open-issues.md),
-and [release verification](docs/submission/release-verification.md). The full internal review archive stays local; public methods, correction history, code and numerical outputs are included.
+and [release verification](docs/submission/release-verification.md). See the [documentation index](docs/README.md) for methods and provenance. The full internal review archive stays local; public methods, correction history, code and numerical outputs are included.
 
 ## Repository map
 
@@ -36,10 +36,10 @@ and [release verification](docs/submission/release-verification.md). The full in
 src/pbo/        Library: Sharpe, PSR/MinTRL/DSR, CSCV/PBO, MinBTL, data loaders, scenarios, strategies
 tests/          Unit tests; expectations come only from paper values or closed forms
 experiments/    One script per analysis; each writes one file in results/
-results/        Saved outputs quoted in the paper (kept as originally produced; corrections are recorded)
+results/        Current reproducible outputs quoted in the paper
 docs/submission The paper and its companion documents
 docs/           Research records: methods supplement, data manifest, paper checks, audits, roadmap
-PROGRESS.md     Chronological log of designs, predictions, results and corrections
+PROGRESS.md     Current verified state and correction summary
 ```
 
 ## Setup and tests
@@ -65,7 +65,7 @@ skip, so passing tests alone do not reproduce the real-data results.
 
 - Library implementations, paper-value provenance and deterministic tests.
 - Fixed-seed synthetic studies, corrected industry bootstraps and a 93-rule market case study.
-- Saved results and original withdrawn/superseded outputs, with the correction history explained.
+- Final saved results and a documented correction history; superseded files remain in Git history.
 - LaTeX, bibliography, vector figures, the full paper and the one-page brief.
 - [Added delayed-execution alpha experiment](experiments/delayed_alpha.py), its [design](docs/submission/evidence/delayed-alpha-design.md), [output](results/delayed_alpha.txt) and [raw bootstrap vectors](results/delayed_alpha_bootstrap.npz).
 

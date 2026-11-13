@@ -64,7 +64,7 @@ def main():
     # 4. Walk-forward: each January pick the best setting by Sharpe on all earlier days, hold it for the year.
     # Costs are charged on the actual held position path, flat before the first test day. Corrected 2026-11-12:
     # the first version stitched each setting's own costed returns, which missed costs at rule switches
-    # (original output kept in results/performance_checks_v1_stitched_costs.txt).
+    # The original output is retained in Git history before the final-tree cleanup.
     positions = np.column_stack([ma_crossover(prices, np.ones(len(prices)), f, s, 0.0) for f, s in SETTINGS])[start:]
     years = days // 10000
     held, picks = np.zeros(len(days)), []

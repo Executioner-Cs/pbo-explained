@@ -75,5 +75,5 @@ def cscv(m, s):
     w = oos_rank / (n + 1)                            # relative OOS rank omega
     logits = np.log(w / (1 - w))                     # g. logit lambda
     # Sec 3.1: PBO = integral of f up to 0. Counting logit = 0 is our reading; Def 2.2 (p.10) uses rank < N/2.
-    # See docs/cscv_notes.md.
+    # See docs/methods/cscv_notes.md.
     return np.mean(logits <= 0), logits

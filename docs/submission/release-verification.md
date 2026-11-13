@@ -29,10 +29,14 @@ The isolated rerun was on the same machine, with copied, hash-checked input arch
 
 ## Scientific corrections retained
 
-The globally centered G6 subperiod run is withdrawn; corrected runs center each period. The late-period PSR result is suggestive under the eight-row Holm family, not a multiplicity-adjusted discovery. Mean PBO is not decision power or future-failure probability. A noisy walk-forward shortfall is not an established failure of the rule family. Active-return DSR, standalone Sharpe differences and market alpha are distinct estimands. The baseline positive alpha evidence is post hoc and execution-sensitive. The original follow-up and walk-forward outputs are retained in versioned result files.
+The globally centered G6 subperiod run is withdrawn; corrected runs center each period. The late-period PSR result is suggestive under the eight-row Holm family, not a multiplicity-adjusted discovery. Mean PBO is not decision power or future-failure probability. A noisy walk-forward shortfall is not an established failure of the rule family. Active-return DSR, standalone Sharpe differences and market alpha are distinct estimands. The baseline positive alpha evidence is post hoc and execution-sensitive. Superseded follow-up and walk-forward outputs are preserved in Git history at commit `f1f8a3e`; only current reproducible outputs remain in the live tree.
 
 ## Remaining limits
 
 One vendor, market and rule family; retrospective choices; tablewise rather than research-wide error control; idealized execution on a nontraded research factor; unverified stationarity and bootstrap assumptions; modern 2026 procedures not experimentally compared; untagged PDF accessibility. Internal review is not independent human peer review. A public release does not strengthen these scientific claims.
 
 The complete internal review archive remains preserved locally. Public-facing methods, correction history, numerical outputs and the added raw sensitivity evidence are provided here for inspection. Release tags identify the published source tree; the paper's original review baseline was commit 68882f58251dfa98adb0949c02f333d481ea2643 plus preserved working-tree revisions.
+
+## Hosted portability check
+
+The first hosted CI run exposed two failures in a bitwise CSCV oracle comparison: the reference used scalar `math.log`, while production used vectorized `numpy.log`. The reference now applies the same final vector log kernel after its independently computed two-pass Sharpe estimates and ranks. The strict array-equality assertion remains; no numerical tolerance or research threshold was relaxed, and production calculations are unchanged. The hosted CI status records the outcome for the current source revision.

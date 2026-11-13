@@ -77,7 +77,7 @@ def test_winner_flips_to_loser_gives_pbo_1():
 
 def test_median_oos_rank_counts_as_overfit():
     # N = 3. IS winner always lands at OOS rank 2 = the median: omega = 1/2, logit = 0.
-    # Our choice: logit 0 counts (integral up to 0, p.13). FLAGGED in docs/cscv_notes.md.
+    # Our choice: logit 0 counts (integral up to 0, p.13). FLAGGED in docs/methods/cscv_notes.md.
     pbo, logits = cscv(matrix([UP, MID], [MID, UP], [DOWN, DOWN]), 2)
     assert logits == pytest.approx([0.0, 0.0])
     assert pbo == 1
@@ -137,13 +137,15 @@ def plain_algorithm_2_3(m, s):
     # Step-by-step Algorithm 2.3 (pp.11-12): copy J and J-bar per split, two-pass std. Slow but direct.
     t, n = m.shape
     rows = np.arange(t).reshape(s, t // s)
-    logits = []
+    odds = []
     for is_b, oos_b in splits(s):
         j, jbar = m[rows[list(is_b)].ravel()], m[rows[list(oos_b)].ravel()]
         best = np.argmax(j.mean(0) / j.std(0))
         w = rank(jbar.mean(0) / jbar.std(0))[best] / (n + 1)
-        logits.append(math.log(w / (1 - w)))
-    return np.array(logits)
+        odds.append(w / (1 - w))
+    # Keep the independent two-pass Sharpe/rank oracle, but use the same final log kernel:
+    # scalar libm and vector NumPy logs need not be bit-identical across CPUs/platforms.
+    return np.log(np.asarray(odds))
 
 
 @pytest.mark.parametrize("s", [4, 8, 16])

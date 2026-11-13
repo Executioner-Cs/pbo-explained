@@ -35,7 +35,7 @@ Ordered by how much each would change a reader's assessment. "Fixable" means fix
 
 | # | Issue |
 |---|---|
-| P1 | No external peer review. The internal review in `submission-readiness.md` is not independent |
+| P1 | No external peer review. The internal review described in `release-verification.md` is not independent |
 | P2 | Contribution is incremental relative to Ledoit and Wolf (2008) and the 2026 papers; a practitioner or replication venue fits it better than a methods journal |
 | P3 | Author contributions and any disclosure wording must be completed for a specific venue |
 | P4 | Mertens (2002) and Memmel (2003) not examined directly; Mertens is cited as attributed by Bailey and Lopez de Prado (2012) |

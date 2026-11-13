@@ -61,7 +61,7 @@ Re-run this check whenever paper_values.py changes.
 This is not a repeat of the rendered-page constant audit above. No numerical paper constant was changed.
 - Version-specific bibliography: PBO February 27, 2015 author copy; SF July 2012 author copy; DSR July 31,
   2014 author copy; PSEUDO April 1, 2014 author copy. Journal and working-copy pagination are distinguished
-  in docs/writeup.md. Publisher/author bibliographic records were consulted for the reference metadata.
+  in the earlier write-up, retained in Git history; see the final paper for current interpretation. Publisher/author bibliographic records were consulted for the reference metadata.
 - Lo (2002), The Statistics of Sharpe Ratios: journal PDF hosted at
   https://traders.berkeley.edu/papers/The-Statistics-of-Sharpe-Ratios.pdf , text of printed pp.39-40 and
   Appendix A p.47 read for non-IID inference, time aggregation, and GMM/Newey-West context. Earlier notes

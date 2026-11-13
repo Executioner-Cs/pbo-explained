@@ -102,12 +102,12 @@ for f in results_orig/*.txt; do cmp -s "$f" "results/$(basename "$f")" && echo "
 | `submission_figures.py` | `psr_ar1_curve.txt`, `fig7_dsr_vs_n.txt`; PDFs in `docs/submission/figures/` | 30 s | both text files identical |
 
 1. `french_followups.txt` was regenerated with the current partial-final-block correction. The original is preserved in
-   `french_followups_v1_partialblock.txt`. L = 60 changes 0.0538 to 0.0539 (z +1.72 to +1.71); the early-period
+   the historical results tree at commit `f1f8a3e`. L = 60 changes 0.0538 to 0.0539 (z +1.72 to +1.71); the early-period
    approximation changes 0.0838 to 0.0837 in two places (early z +3.34 to +3.35). Every simulated count is identical.
-   The exact reconciliation is saved in `evidence/french-followups-reconciliation.diff`.
+   The correction appendix records the reconciliation; the superseded output is recoverable from Git history at `f1f8a3e`.
 2. `performance_checks.txt` was regenerated after the walk-forward cost correction (Sharpe 0.467 to 0.466, Sortino 0.630
    to 0.629, difference -0.069 to -0.070, p 0.7417 to 0.7428). The original is preserved in
-   `performance_checks_v1_stitched_costs.txt`.
+   the historical results tree at commit `f1f8a3e`.
 
 ## 5. Paper and summary
 

@@ -203,3 +203,20 @@ def test_block_bootstrap_factor_matches_bootstrap_variance():
     means = [block_bootstrap(rng, x, 405, 10).mean() for _ in range(20_000)]
     expected = block_bootstrap_factor(x, 10, 405)[0] * x.var() / 405
     assert np.var(means) == pytest.approx(expected, rel=0.05)   # our choice: 5%, MC SE of a variance is about 1%
+
+
+def test_block_bootstrap_factor_never_negative():
+    # A variance ratio cannot be negative; roundoff used to give -1.7e-16 here.
+    assert block_bootstrap_factor(np.array([[1.0], [-1.0], [2.0]]), 5, 3)[0] >= 0
+
+
+def test_stationary_bootstrap_indices_follow_blocks():
+    # Within a block the index steps by 1 (mod n); with mean block 1 every day starts a new block.
+    from pbo.scenarios import stationary_bootstrap_indices
+    rng = np.random.default_rng(5)
+    idx = stationary_bootstrap_indices(rng, 50, 20_000, 20)
+    steps = np.diff(idx) % 50
+    assert idx.min() >= 0 and idx.max() < 50 and len(idx) == 20_000
+    # a step other than +1 can only happen at a block start; starts occur with probability 1/20
+    assert np.mean(steps != 1) == pytest.approx(1 / 20 * (1 - 1 / 50), abs=0.005)
+    assert np.isin(stationary_bootstrap_indices(rng, 7, 100, 1), np.arange(7)).all()

@@ -110,4 +110,20 @@ def block_bootstrap_factor(x, block, t):
         return f
 
     q, r = divmod(t, block)
-    return (q * block * factor(block) + (r * factor(r) if r else 0)) / t
+    f = (q * block * factor(block) + (r * factor(r) if r else 0)) / t
+    return np.maximum(f, 0.0)                     # a variance ratio; clips roundoff below zero
+
+
+def stationary_bootstrap_indices(rng, n, t, mean_block):
+    """Day indices for one stationary-bootstrap resample (Politis and Romano 1994) of length t from n days.
+
+    Circular; each day starts a new block with probability 1/mean_block, so block lengths are geometric.
+    """
+    if n < 1 or t < 1 or not mean_block >= 1:
+        raise ValueError("n and t must be at least 1 and mean_block at least 1")
+    new = rng.random(t) < 1 / mean_block
+    new[0] = True
+    block = np.cumsum(new) - 1
+    first = np.flatnonzero(new)
+    starts = rng.integers(0, n, size=len(first))
+    return (starts[block] + np.arange(t) - first[block]) % n

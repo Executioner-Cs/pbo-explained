@@ -62,7 +62,8 @@ def main():
         lines.append(f"  SR={sr:<4} {summary(pbos)}")
         print(lines[-1], flush=True)
 
-    # G4 (step 4): the same check with dependent noise (unit variance, so the edge is the same Sharpe)
+    # G4 (step 4): the same check with dependent noise (unit variance, so the same daily mean/SD ratio; under AR(1)
+    # that is a weaker signal at longer horizons, see PROGRESS.md corrections)
     rng = np.random.default_rng(SEED_DEPENDENT)
     for name, noise in NOISES.items():
         lines += ["", f"Null 2 with {name} noise (G4), seed={SEED_DEPENDENT}; z = difference from the IID row"]

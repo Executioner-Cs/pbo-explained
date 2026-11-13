@@ -30,6 +30,51 @@
 - Suite: 61 passed.
 - Signed off by Mayo 2026-11-10 (TODO 2.4, 2.21). Packet: docs/review_step2.md.
 
+## Revision after the panel review (docs/peer_review_round1.md), 2026-11-12
+Decision Major Revision (four reviewers plus Devil's Advocate, no CRITICAL). Author triage (Mayo): corrected G6 as
+the main real-data result, distortion in both directions; market test: report power, plus Hansen SPA as a
+pre-recorded secondary test; all four case-study sensitivity checks; MIT license; every other roadmap item addressed.
+- Code (tests first, 266 pass): download checked by SHA-256 before it is stored, 60 s timeout; block factor clipped
+  at 0 and psr_false_positive rejects negative or non-finite factors; ar1_psr_false_positive needs |phi| < 1 and
+  integer t >= 2; newey_west_factor needs integer lags; mean_with_se needs 2 values; result files written as UTF-8
+  with LF; market_comparison computes its lags from T (11 at T = 13,664). All saved results unchanged (reruns
+  diffed against git).
+- CSCV precision (code review finding 3): not changed. Checked against extended precision, the flagged inputs
+  have Sharpe ratios equal to 12 significant digits, so their ranks are below double precision for any
+  implementation, the direct two-pass loop included. Documented as a limit in the manuscript.
+- New derived numbers, no simulation: experiments/manuscript_numbers.py, results/manuscript_numbers.txt (exact
+  binomial and Holm p, market-test power and CI at 0, 11, 44 lags, Newey-West bias-only rate 5.76%, exact
+  expected maximum). Evidence rule replaced, after all results were seen, by exact binomial plus Holm within each
+  table; it changes one verdict (1999-2026: suggestive to detected, below 5%).
+- Manuscript rewritten as a standard paper (docs/writeup.md); LICENSE (MIT) added; README and methods updated.
+
+### Planned runs, design recorded 2026-11-12 before any run (predictions pending from Mayo)
+At 5 bps on the step 5 grid and days unless stated:
+1. Extra lag: position acts one day later (signal at close t-1 for day t+1). Best setting, Sharpe, PBO, DSR and the
+   paired test (11 lags) against the market.
+2. Turnover and break-even: changes in position per year for 15/225; cost per change at which its Sharpe equals the
+   market's.
+3. Sub-periods: 15/225 vs the market, paired test (11 lags), on 1972-07-18 to 1998-12-31 and 1999-01-04 to
+   2026-09-30.
+4. DSR break-even N: smallest N with DSR < 0.95 for 15/225, V held at its observed value.
+5. Hansen (2005) SPA, consistent version: 93 settings vs the market, stationary bootstrap (Politis and Romano 1994),
+   mean block 20 days, 2000 resamples, fixed seed; secondary to the recorded Bonferroni test.
+Predictions: waived by Mayo ("just run everything and you do not need my predictions"); the runs are exploratory.
+
+### Planned-run results, RECOMPUTED, 2026-11-12 (experiments/case_study_checks.py, results/case_study_checks.txt)
+- Delay 1 reproduces the step 5 baseline exactly (0.588, PBO 0.208, DSR 0.9980, p 0.0943).
+- Extra lag: 15/225 still best, Sharpe 0.578, PBO 0.216, DSR 0.9959, difference +0.120 (p 0.113); 48 of 93 above.
+- Turnover 1.32 changes per year (72 in 54.7 years); break-even cost 121 bps per change.
+- Sub-periods: 1972-1998 +0.068 (se 0.134, p 0.305); 1999-2026 +0.167 (se 0.140, p 0.117).
+- DSR falls below 0.95 at N of about 7.4e5 (V fixed).
+- Hansen SPA, 93 settings vs market: statistic 1.265, p 0.504.
+- Readable paper for learners and reviewers: docs/paper.md (figures 2-7 by experiments/figures.py from saved
+  results; curves saved first to results/fig5_growth.txt and results/fig7_dsr_vs_n.txt); code snippets checked
+  against the source by tests/test_paper_snippets.py (279 tests pass); precise resources with DOIs and free copies.
+  docs/writeup.md is now the full technical report. PDF: docs/pbo-paper.pdf (paper first, then everything).
+- Library additions (tests first, 273 pass): ma_crossover/crossover_panel delay; scenarios.stationary_bootstrap_indices;
+  psr_dsr.spa_sharpe. Manuscript Section 4.7 added.
+
 ## Step 4 (signed off by Mayo 2026-11-12; reopened 2026-11-12 for corrections, see "Corrections after the publication audit")
 Question: how PSR, DSR and PBO behave, with zero true edge, when one IID Normal assumption breaks: (a) synthetic
 scenarios, (b) real dependence from the French 49 industries. Each design and prediction was written here before its
@@ -211,6 +256,25 @@ The text above is kept as recorded; these entries correct it. Original result fi
 - New result file results/g6_corrected.txt, linked to the original; results/french_followups.txt not overwritten.
 - Prediction (proposed by the reviewer, forwarded by Mayo; UNVERIFIED, from the autocorrelation approximation, not
   a result): 1971-98 about 8.4%, above 5%; 1999-2026 about 3.9%, below 5%.
+
+### Corrected G6 results, RECOMPUTED, run 2026-11-12 after design commit d78d8e8
+Output: results/g6_corrected.txt (results/french_followups.txt unchanged). L = 20, T = 1248, 2000 datasets each.
+| Period | Simulated, exact 95% CI | Approximation | Simulated minus approximation | Inside CI | Prediction |
+|---|---|---|---|---|---|
+| 1971-1998 | 8.35% [7.17, 9.65] (167/2000) | 8.37% | -0.02 pp | yes | about 8.4%, above 5%: right |
+| 1999-2026 | 3.85% [3.05, 4.79] (77/2000) | 3.94% | -0.09 pp | yes | about 3.9%, below 5%: right |
+- With each period centred, both intervals exclude 5%: above in 1971-98, below in 1999-2026. The autocorrelation
+  approximation (our derivation, partial-block factor) lies inside both simulated intervals.
+- Compared with the withdrawn uncentred run (10.45%, 3.30%), the early rate fell by 2.1 pp and the late rate rose
+  by 0.55 pp: the nonzero period means had inflated the early rate and deflated the late one.
+- Caveats (statistics review, 2026-11-12, after the run):
+  - No decision rule for "above / below 5%" or for the early-minus-late difference was fixed before the run, so
+    any such test is post hoc. The rows above are descriptive.
+  - The prediction is not blind: it equals the approximation (block_bootstrap_factor demeans internally, so the
+    approximation is the same 0.0837 / 0.0394 as follow-up A), and it was proposed after the uncentred result was
+    known. "Prediction right" means the simulation agrees with the approximation.
+  - Not a replication: seeds 9 and 10 reproduce the original resampled days exactly (209/2000 on the uncentred
+    early slice), so the corrected datasets differ from the original only by a constant shift per industry.
 
 ### Limits (for step 6)
 Only SR* = 0 was tested (PSR at SR* > 0 and MinTRL under GARCH untested). 4(b) intervals are Monte Carlo error given
@@ -464,8 +528,22 @@ divided by sqrt(5) is 0.016.
   and author publication record were inspected, not its full proofs. The manuscript explicitly evaluates the
   2014 Eq.2 construction and Eq.9 interpolation, not all later DSR variants. No new-statistic or first-discovery
   claim is made, and no complete systematic novelty search is claimed.
-- Corrected G6 design is ready for its required pre-run commit; neither commit nor execution occurred.
-  Its result file remains absent. Existing saved result contents were not changed in this review.
+- Corrected G6 design was ready for its required pre-run commit at the time of this review. [Since then: committed
+  in d78d8e8 and run; see "Corrected G6 results".]
 - Remaining gates: owner-approved pre-run commit, corrected G6 result/review, durable exact-data acquisition,
   complete current-literature assessment, and renewed manuscript/publication review. Older sign-offs do not
   constitute approval of the corrected research paper.
+
+### Walk-forward cost correction, 2026-11-12 (external review finding)
+- Defect: experiments/performance_checks.py built the walk-forward series by stitching each selected setting's own
+  costed returns. At a January rule switch the actual position change is from the previously held setting, so costs
+  were missed. Reported by an external review (docs/submission/open-issues-plan.md) with a reconstruction:
+  Sharpe 0.46678094 -> 0.46641898, switch days 1991-01-02, 1995-01-03, 1998-01-02, 2016-01-04.
+- Independent reconstruction before any change, RECOMPUTED: same four dates, 20 bps of summed excess return,
+  Sharpe 0.466781 -> 0.466419. This served as the prediction for the corrected run (not an owner prediction).
+- Fix, tests first: pbo.strategies.position_returns (cost on the actual position path, flat before day 0);
+  ma_crossover now calls it. Six new tests in tests/test_strategies.py, including a hand-worked rule switch.
+  Full suite: 285 passed. ma_crossover, market_comparison and case_study_checks reran byte-identical.
+- Original output preserved as results/performance_checks_v1_stitched_costs.txt (byte copy). Regenerated
+  results/performance_checks.txt: walk-forward Sharpe 0.466 (was 0.467), Sortino 0.629 (0.630), difference
+  -0.070 (-0.069), one-sided p 0.7428 (0.7417). Conclusion unchanged. The walk-forward remains exploratory.

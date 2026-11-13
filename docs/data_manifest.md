@@ -45,10 +45,16 @@ The following are RECOMPUTED dataset dimensions or recorded modeling choices, no
 
 ## Reproduction status
 
-The archives are excluded from Git. No durable location or exact immutable acquisition procedure is documented
-yet. A current endpoint may provide matching bytes today, but that does not guarantee future recovery of this
-snapshot. Do not describe exact fresh-clone reproduction as solved until an acquisition route and clean-environment
-check are supplied. Keep original result files and archive identities when issuing corrections.
+Both exact ZIPs have timestamped recovery routes independently downloaded and verified on 2026-11-13 UTC:
+
+- [Industry capture, 20261113053423](https://web.archive.org/web/20261113053423id_/https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_daily_CSV.zip).
+- [Factor capture, 20261030074337](https://web.archive.org/web/20261030074337id_/https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip).
+
+The industry capture was requested for the existing public provider URL under the owner's preservation request.
+Both returned ZIPs match the hashes and byte lengths in [data-recovery.json](submission/data-recovery.json).
+This establishes verified retrieval at that time, not perpetual availability or data redistribution rights.
+The ZIPs remain excluded from Git and from the software licence. A fresh-environment reproduction record is
+maintained in docs/submission/reproducibility.md; keep identity verification separate from execution evidence.
 
 The manuscript's paper PDFs are also excluded from Git. References and the page-check record document their
 identity and verification scope; local PDF availability should not be confused with immutable data provisioning.

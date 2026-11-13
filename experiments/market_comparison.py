@@ -19,8 +19,7 @@ Q, S = pv.PERIODS_PER_YEAR, pv.PBO_S16
 SETTINGS = [(f, s) for f in range(5, 55, 5) for s in range(25, 275, 25) if f < s]  # step 5 design
 COST = 0.0005                                     # the main cost level of step 5
 ALPHA = 0.05                                      # family-wise level, our choice
-PRIMARY = 11                                      # int(4 (T/100)^(2/9)) at T = 13664, the step 4 rule
-SENSITIVITY = (0, 44)                             # reported only; not extra chances to pass
+SENSITIVITY_MULTIPLE = 4                          # sensitivity bandwidths: 0 and 4 x primary (44 at T = 13664)
 
 
 def main():
@@ -28,6 +27,8 @@ def main():
     prices = np.cumprod(1 + mkt_rf + rf)
     start, m = crossover_panel(prices, mkt_rf, SETTINGS, COST, S)
     market = mkt_rf[start:]
+    PRIMARY = int(4 * (len(market) / 100) ** (2 / 9))   # Newey-West (1994) rule, as in step 4: 11 at T = 13664
+    SENSITIVITY = (0, SENSITIVITY_MULTIPLE * PRIMARY)   # reported only; not extra chances to pass
     n = len(SETTINGS)
     best = int(np.argmax(m.mean(axis=0) / m.std(axis=0)))
     z_crit = norm.ppf(1 - ALPHA / n)

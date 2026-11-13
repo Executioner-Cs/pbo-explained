@@ -37,3 +37,8 @@ def test_formatters():
 def test_rate_with_ci_needs_booleans(flags):
     with pytest.raises(ValueError):
         rate_with_ci(flags)
+
+
+def test_mean_with_se_needs_two_values():
+    with pytest.raises(ValueError):
+        mean_with_se([1.0])

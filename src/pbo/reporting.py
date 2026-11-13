@@ -23,6 +23,8 @@ def rate_with_ci(flags):
 def mean_with_se(values):
     """Mean and its Monte Carlo standard error, sd / sqrt(n) with ddof = 1."""
     values = np.asarray(values, dtype=float)
+    if values.size < 2:
+        raise ValueError("need at least 2 values for a standard error")
     return values.mean(), values.std(ddof=1) / np.sqrt(values.size)
 
 
@@ -41,9 +43,9 @@ def format_mean(values):
 def save_results(name, lines):
     """Write lines to results/<name>.txt, one per line."""
     RESULTS_DIR.mkdir(exist_ok=True)
-    (RESULTS_DIR / f"{name}.txt").write_text("\n".join(lines) + "\n")
+    (RESULTS_DIR / f"{name}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def read_results(name):
     """Text of results/<name>.txt."""
-    return (RESULTS_DIR / f"{name}.txt").read_text()
+    return (RESULTS_DIR / f"{name}.txt").read_text(encoding="utf-8")

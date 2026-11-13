@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from pbo.strategies import crossover_panel, ma_crossover, moving_average
+from pbo.strategies import crossover_panel, ma_crossover, moving_average, position_returns
 
 
 def test_moving_average_closed_form():
@@ -77,3 +77,51 @@ def test_panel_trims_common_days_and_preserves_positions_and_costs():
 def test_panel_rejects_empty_search_or_invalid_partition(settings, blocks):
     with pytest.raises(ValueError):
         crossover_panel(np.arange(1., 14.), np.full(13, 0.01), settings, 0.001, blocks)
+
+
+def test_delay_two_is_delay_one_shifted_by_a_day():
+    # delay = 2: the signal at close t sets the position for day t + 2, so positions are those of delay 1, one day
+    # later. With zero cost the returns are position * excess; check against that closed form.
+    rng = np.random.default_rng(3)
+    excess = rng.normal(0, 0.01, 300)
+    prices = np.cumprod(1 + excess)
+    one = ma_crossover(prices, np.ones(300), 10, 50, 0.0)       # excess 1: returns equal positions
+    two = ma_crossover(prices, np.ones(300), 10, 50, 0.0, delay=2)
+    assert np.array_equal(two[1:], one[:-1]) and two[0] == 0
+
+
+@pytest.mark.parametrize("delay", [0, 1.5, True])
+def test_delay_must_be_a_positive_integer(delay):
+    with pytest.raises(ValueError):
+        ma_crossover(np.arange(1.0, 21), np.ones(20), 2, 5, 0.0, delay=delay)
+
+
+def test_position_returns_closed_form():
+    # Path flat, long, long, flat, long; excess 0.01 a day, cost 0.001 per unit change.
+    # Hand-worked: day 1 enters (0.01 - 0.001), day 2 holds, day 3 exits (-0.001), day 4 re-enters.
+    r = position_returns([0, 1, 1, 0, 1], np.full(5, 0.01), 0.001)
+    assert r == pytest.approx([0, 0.009, 0.01, -0.001, 0.009])
+
+
+def test_switching_rules_charges_the_actual_position_change():
+    # Rule A is always flat, rule B always long. Holding A on days 0-1 and B on days 2-3 changes the actual
+    # position once, on day 2, so day 2 pays one cost. Stitching each rule's own returns would miss it, because
+    # B never trades on its own path.
+    a, b = np.zeros(4), np.ones(4)
+    path = np.r_[a[:2], b[2:]]
+    assert position_returns(path, np.full(4, 0.01), 0.001) == pytest.approx([0, 0, 0.009, 0.01])
+
+
+def test_start_position_sets_the_first_day_cost():
+    # Already long before day 0: no entry cost on day 0.
+    assert position_returns([1, 1], np.full(2, 0.01), 0.001, start=1.0) == pytest.approx([0.01, 0.01])
+
+
+@pytest.mark.parametrize("position, excess, cost", [
+    (np.ones(3), np.ones(2), 0.0),            # lengths differ
+    (np.r_[np.nan, 1, 1], np.ones(3), 0.0),   # non-finite
+    (np.ones(3), np.ones(3), -0.001),         # negative cost
+])
+def test_position_returns_rejects_bad_input(position, excess, cost):
+    with pytest.raises(ValueError):
+        position_returns(position, excess, cost)

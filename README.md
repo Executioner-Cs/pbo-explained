@@ -2,13 +2,15 @@
 
 This repository reproduces published Sharpe-ratio, PSR, DSR, MinTRL, MinBTL and CSCV/PBO calculations,
 then examines their behavior in controlled simulations and an idealized market-factor strategy search.
-It accompanies the [working manuscript](docs/writeup.md), which is **under correction** following a
-[publication audit](docs/publication_audit.md). It does not establish an executable trading strategy or
-certify future performance.
+It accompanies the [working manuscript](docs/writeup.md), revised after a
+[publication audit](docs/publication_audit.md) and a [panel review](docs/peer_review_round1.md). It does not
+establish an executable trading strategy or certify future performance.
 
 ## Start here
 
-- [Manuscript](docs/writeup.md): questions, methods, results, limitations and references.
+- [One-page research summary](docs/submission/research-summary.pdf).
+- [Working paper](docs/submission/research-paper.pdf), [source](docs/submission/research-paper.tex), and [reproduction instructions](docs/submission/reproducibility.md).
+- [Earlier manuscript](docs/writeup.md): project-level questions, methods, results and correction history.
 - [Progress and corrections](PROGRESS.md): recorded designs, predictions, results and withdrawn claims.
 - [Roadmap](docs/TODO.md): review and sign-off state.
 - [Methods supplement](docs/research_methods.md): estimands, assumptions, generators, nulls and inference conventions.
@@ -16,9 +18,8 @@ certify future performance.
 - [Paper checks](docs/paper_check.md): page-level verification record; constants live in `src/pbo/paper_values.py`.
 
 The original G6 period comparison did not impose zero means within each period. Its calibration interpretation
-is withdrawn. `experiments/g6_corrected.py` centers each period separately; its design and prediction are
-recorded, but its simulation remains pending the pre-run commit and review workflow. The original output is
-retained in `results/french_followups.txt`; a corrected run writes only `results/g6_corrected.txt`.
+is withdrawn. `experiments/g6_corrected.py` centers each period separately (design committed before the run,
+d78d8e8) and wrote `results/g6_corrected.txt`; the original output is retained in `results/french_followups.txt`.
 
 ## Environment and tests
 
@@ -52,11 +53,11 @@ real-data experiments can be reproduced.
 
 ## Data and reproduction
 
-**A fresh clone does not currently supply a durable route to the exact frozen input bytes.** The loader
-downloads a rolling French Data Library URL if a local ZIP is absent, then rejects bytes with a different
-hash. SHA-256 detects a revised snapshot; it cannot recover the original. Obtain the exact archives listed in
-the [manifest](docs/data_manifest.md), put them in `data/` without extracting or modifying them, and retain
-the hash checks. An immutable provisioning location is still a publication requirement.
+**Both frozen inputs now have independently hash-verified timestamped recovery URLs.** Use the capture URLs
+in the [data manifest](docs/data_manifest.md) and [machine-readable recovery record](docs/submission/data-recovery.json)
+before running the loaders. The default loader still downloads the rolling provider URL if a ZIP is absent and
+refuses a mismatching hash; do not disable that check. Data remain outside Git and are not licensed under MIT.
+Archival availability is not a guarantee of perpetual access or permission to redistribute the data.
 
 After provisioning both archives, this check reads and validates them without writing any experiment result:
 
@@ -83,7 +84,8 @@ imports and are not supported through `python -m experiments...`.
 | `calibration.py` | `calibration.txt` | Seeded synthetic scenarios |
 | `french_bootstrap.py` | `french_bootstrap.txt` | Frozen industry archive |
 | `french_followups.py` | `french_followups.txt` | Frozen industry archive and bootstrap output; includes historical, uncentered G6 |
-| `g6_corrected.py` | `g6_corrected.txt` | Frozen industry archive; corrected run pending |
+| `g6_corrected.py` | `g6_corrected.txt` | Frozen industry archive; uses `french_bootstrap.py` and `french_followups.py` settings |
+| `manuscript_numbers.py` | `manuscript_numbers.txt` | Saved results and frozen factor archive; derived statistics only |
 | `ma_crossover.py` | `ma_crossover.txt` | Frozen factor archive |
 | `market_comparison.py` | `market_comparison.txt` | Frozen factor archive |
 | `figure_psr_ar1.py` | `psr_ar1_curve.txt`, `figure1_psr_ar1.png` | Saved calibration output and analytic approximation |
@@ -92,5 +94,5 @@ Calibration and bootstrap scripts perform many simulations and can take minutes.
 process-pool entry points are defined in the scripts. Monte Carlo intervals quantify simulation uncertainty
 conditional on each specified data-generating process; they do not remove model or historical-sample uncertainty.
 
-No software license is supplied yet. The project owner must select one before permission to reuse the code
-can be stated. Data access and redistribution conditions are separate from the software license.
+The code is released under the [MIT License](LICENSE). Data access and redistribution conditions are separate
+from the software license and are not granted by it.

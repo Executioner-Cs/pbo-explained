@@ -1,0 +1,19 @@
+Case-study checks, 5 bps unless stated, paired tests with 11 Bartlett lags, annualized.
+
+1. Execution lag: position set by the signal two closes earlier (baseline: one)
+  delay 1: best 15/225 Sharpe 0.588 (market 0.458), PBO 0.208, DSR 0.9980, vs market difference +0.130 (se 0.099, one-sided p 0.0943); 50 of 93 above market
+  delay 2: best 15/225 Sharpe 0.578 (market 0.458), PBO 0.216, DSR 0.9959, vs market difference +0.120 (se 0.099, one-sided p 0.1133); 48 of 93 above market
+
+2. Turnover and break-even cost, setting 15/225
+  changes in position: 72 over 54.7 years = 1.32 per year
+  cost per change at which its Sharpe equals the market's: 121 bps
+
+3. Setting 15/225 vs market by period (split 19990101)
+  1972-1998 (6686 days): Sharpe 0.568 vs market 0.500; difference +0.068 (se 0.134, one-sided p 0.3049)
+  1999-2026 (6978 days): Sharpe 0.606 vs market 0.439; difference +0.167 (se 0.140, one-sided p 0.1166)
+
+4. DSR break-even N, setting 15/225, V fixed
+  DSR at N = 93: 0.9980; DSR falls below 0.95 at N of about 7.37e+05
+
+5. Hansen SPA (consistent), 93 settings vs market, stationary bootstrap mean block 20, 2000 resamples, seed 20261115
+  statistic 1.265, p-value 0.5040

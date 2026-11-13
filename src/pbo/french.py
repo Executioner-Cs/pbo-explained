@@ -53,11 +53,16 @@ def read_snapshot(name, sha256):
     """Text of a frozen French zip: downloaded once to data/, then refused if its SHA-256 ever differs."""
     path = DATA / name
     if not path.exists():
+        with urllib.request.urlopen(FTP + name, timeout=60) as response:
+            raw = response.read()
+        # French revises history, so a new download can differ: check before it is stored, never cache bad bytes.
+        if hashlib.sha256(raw).hexdigest() != sha256:
+            raise ValueError(f"downloaded {name} is not the frozen snapshot (SHA-256 differs); nothing was saved")
         DATA.mkdir(exist_ok=True)
-        part = path.with_suffix(".part")                     # an interrupted download never looks complete
-        urllib.request.urlretrieve(FTP + name, part)
+        part = path.with_suffix(".part")                     # an interrupted write never looks complete
+        part.write_bytes(raw)
         part.replace(path)
-    # Same bytes means same columns, dates and values. French revises history, so a new download must fail.
+    # Same bytes means same columns, dates and values.
     if hashlib.sha256(path.read_bytes()).hexdigest() != sha256:
         raise ValueError(f"{name} is not the frozen snapshot (SHA-256 differs)")
     with zipfile.ZipFile(path) as z:

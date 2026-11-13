@@ -381,3 +381,50 @@ def test_psr_accepts_two_point_sample_moments(sample):
     from scipy.stats import kurtosis, skew
     x = np.array(sample, dtype=float)
     psr(0.01, 0.0, 100, skew(x), kurtosis(x, fisher=False))
+
+
+@pytest.mark.parametrize("factor", [-1e-18, np.nan, np.inf])
+def test_psr_false_positive_rejects_impossible_factor(factor):
+    with pytest.raises(ValueError):
+        psr_false_positive(factor, 1248, 0.95)
+
+
+def test_psr_false_positive_factor_zero_never_rejects():
+    # F = 0: the sample mean never moves, so PSR(0) never exceeds the level.
+    assert psr_false_positive(0.0, 1248, 0.95) == 0.0
+
+
+@pytest.mark.parametrize("phi, t", [(-1.0, 10), (1.0, 10), (0.3, 1), (0.3, 2.5)])
+def test_ar1_rate_rejects_outside_stationary_domain(phi, t):
+    with pytest.raises(ValueError):
+        ar1_psr_false_positive(phi, t, 0.95)
+
+
+@pytest.mark.parametrize("lags", [True, 1.5])
+def test_newey_west_needs_integer_lags(lags):
+    with pytest.raises(ValueError):
+        newey_west_factor(np.arange(10.0) ** 2, lags)
+
+
+def test_spa_sharpe_all_worse_gives_p_one():
+    # Every strategy is the benchmark minus a constant, so every Sharpe difference is negative: statistic 0, p = 1.
+    from pbo.psr_dsr import spa_sharpe
+    from pbo.scenarios import stationary_bootstrap_indices
+    rng = np.random.default_rng(6)
+    y = rng.normal(0.0005, 0.01, 2000)
+    x = np.column_stack([y - 0.0005 * k for k in (1, 2, 3)])
+    idx = np.array([stationary_bootstrap_indices(rng, 2000, 2000, 10) for _ in range(200)])
+    stat, p = spa_sharpe(x, y, idx)
+    assert stat == 0 and p == 1
+
+
+def test_spa_sharpe_detects_a_large_edge():
+    # One strategy has annual Sharpe about 3 over the benchmark on 2000 days: SPA must reject.
+    from pbo.psr_dsr import spa_sharpe
+    from pbo.scenarios import stationary_bootstrap_indices
+    rng = np.random.default_rng(7)
+    y = rng.normal(0.0, 0.01, 2000)
+    x = np.column_stack([y + rng.normal(0.002, 0.005, 2000), y - 0.0003])
+    idx = np.array([stationary_bootstrap_indices(rng, 2000, 2000, 10) for _ in range(300)])
+    stat, p = spa_sharpe(x, y, idx)
+    assert stat > 3 and p < 0.01

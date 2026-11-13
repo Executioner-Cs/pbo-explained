@@ -1,7 +1,6 @@
 # Methods and estimands supplement
 
-Status: working-paper methods specification, 2026-11-12. Corrected G6 results are pending. No result is asserted
-for a run that has not occurred. Paper formulas are distinguished from numerical implementation choices and
+Status: working-paper methods specification, 2026-11-12. Corrected G6 has run (results/g6_corrected.txt). Paper formulas are distinguished from numerical implementation choices and
 extensions performed in this repository. This document does not establish priority over the literature.
 
 ## 1. Observation unit and Sharpe estimand
@@ -106,7 +105,8 @@ Original G6 sliced the globally demeaned history without centering each slice. I
 not satisfy the zero-mean null. The old rates are retained as historical outputs and their calibration attribution
 is withdrawn. Corrected G6 centers each industry independently within each date-defined period, keeps the
 original child seeds 9 and 10 from SeedSequence(20261113).spawn(11), and writes a new result file. The design
-and reviewer-proposed prediction precede that run. No corrected outcome is available yet.
+were committed before that run (d78d8e8); the prediction equals the analytic approximation and was proposed
+after the uncentred result was known. Result: 1971-98 8.35% [7.17, 9.65], 1999-2026 3.85% [3.05, 4.79].
 
 AR residuals (G2) and arithmetic five-day aggregation (B) are robustness checks with multiple simultaneous
 changes. Their results do not isolate an autocorrelation intervention.

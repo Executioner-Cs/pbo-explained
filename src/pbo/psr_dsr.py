@@ -70,7 +70,11 @@ def psr_false_positive(factor, t, level):
     Our derivation, an approximation: sqrt(t) SR is treated as N(0, factor), and SF Eq. 11 uses sqrt(t - 1) with
     factor 1. It does not integrate over the random sample standard deviation, skewness or kurtosis.
     """
-    return 1 - norm.cdf(norm.ppf(level) / np.sqrt(np.asarray(factor) * (t - 1) / t))
+    factor = np.asarray(factor, dtype=float)
+    if not (np.isfinite(factor).all() and (factor >= 0).all()):
+        raise ValueError("factor must be finite and >= 0 (a variance ratio)")
+    with np.errstate(divide="ignore"):            # factor 0: the mean never moves, rate 0
+        return 1 - norm.cdf(norm.ppf(level) / np.sqrt(factor * (t - 1) / t))
 
 
 def ar1_psr_false_positive(phi, t, level):
@@ -80,6 +84,10 @@ def ar1_psr_false_positive(phi, t, level):
     assumes F = 1. Returns (finite-t approximation with F_t = 1 + 2 sum_{k<t} (1 - k/t) phi^k and Eq. 11's
     sqrt(t - 1), not an exact finite-sample law; large-t rate with F = (1 + phi)/(1 - phi)).
     """
+    if not -1 < phi < 1:
+        raise ValueError("phi must be strictly between -1 and 1 (stationary AR(1))")
+    if isinstance(t, (bool, np.bool_)) or not isinstance(t, (int, np.integer)) or t < 2:
+        raise ValueError("t must be an integer of at least 2")
     k = np.arange(1, t)
     f_t = 1 + 2 * np.sum((1 - k / t) * phi**k)
     finite = psr_false_positive(f_t, t, level)
@@ -96,8 +104,8 @@ def newey_west_factor(x, lags):
     if x.ndim != 1 or not np.isfinite(x).all():
         raise ValueError("x must be a finite 1-D array")
     d = x - x.mean()
-    if not 0 <= lags < len(d):
-        raise ValueError("lags must be at least 0 and below the series length")
+    if isinstance(lags, (bool, np.bool_)) or not isinstance(lags, (int, np.integer)) or not 0 <= lags < len(d):
+        raise ValueError("lags must be an integer, at least 0 and below the series length")
     var = d @ d
     if var == 0:
         raise ValueError("x has zero variance")
@@ -169,3 +177,32 @@ def sharpe_diff(x, y, lags):
         raise ValueError("Sharpe difference or its variance is not finite")
     # Bartlett is positive semidefinite; clip negative floating-point roundoff at zero.
     return sr[0] - sr[1], math.sqrt(max(0., long_run)) / t
+
+
+def spa_sharpe(x, y, indices):
+    """Hansen (2005) consistent SPA test of H0: no column of x has a higher Sharpe ratio than y. Not in SF or DSR.
+
+    x: T x K strategy returns and y: T benchmark returns on the same days; indices: B x T resampled day indices (for
+    example stationary bootstrap). The statistic uses Sharpe differences, as Sullivan, Timmermann and White (1999)
+    do for the Reality Check. Returns (statistic, consistent p-value).
+    """
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    if x.ndim != 2 or y.ndim != 1 or len(x) != len(y) or not (np.isfinite(x).all() and np.isfinite(y).all()):
+        raise ValueError("x must be T x K and y length T, both finite")
+    t = len(y)
+
+    def differences(rows):
+        xs, ys = x[rows], y[rows]
+        return xs.mean(axis=0) / xs.std(axis=0) - ys.mean() / ys.std()
+
+    observed = differences(slice(None))
+    boot = np.array([differences(rows) for rows in indices])
+    omega = math.sqrt(t) * boot.std(axis=0)           # bootstrap sd of sqrt(t) times each difference
+    if not (np.isfinite(omega).all() and (omega > 0).all()):
+        raise ValueError("bootstrap standard deviations must be positive and finite")
+    standardized = math.sqrt(t) * observed / omega
+    statistic = max(standardized.max(), 0.0)
+    # Consistent recentring: a clearly negative difference keeps its mean, every other is centred at zero.
+    centre = np.where(standardized >= -math.sqrt(2 * math.log(math.log(t))), observed, 0.0)
+    null = np.maximum((math.sqrt(t) * (boot - centre) / omega).max(axis=1), 0.0)
+    return statistic, float(np.mean(null >= statistic))

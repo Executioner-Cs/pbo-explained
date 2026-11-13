@@ -113,3 +113,24 @@ def test_corrected_g6_populations_have_zero_mean():
 def test_demean_by_period_rejects_invalid_panels(dates, data, split):
     with pytest.raises(ValueError):
         demean_by_period(np.asarray(dates), np.asarray(data), split)
+
+
+def test_read_snapshot_rejects_and_removes_a_bad_download(tmp_path, monkeypatch):
+    # A download with the wrong hash must raise and leave nothing behind, so the next call downloads again.
+    import pbo.french as french
+
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return b"not the frozen bytes"
+
+    monkeypatch.setattr(french, "DATA", tmp_path)
+    monkeypatch.setattr(french.urllib.request, "urlopen", lambda url, timeout: Response())
+    with pytest.raises(ValueError):
+        french.read_snapshot("x.zip", "0" * 64)
+    assert list(tmp_path.iterdir()) == []

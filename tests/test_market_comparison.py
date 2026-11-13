@@ -49,13 +49,14 @@ def test_synthetic_pipeline_reports_every_setting_and_primary_first(monkeypatch,
 
     monkeypatch.setitem(main.__globals__, "sharpe_diff", comparison)
     main()
-    assert calls == [11] * 93 + [0] * 93 + [44] * 93
+    # Lag rule int(4 (T/100)^(2/9)) at the synthetic T = 144 gives 4; sensitivities 0 and 4 x 4 (11 and 44 at T = 13664).
+    assert calls == [4] * 93 + [0] * 93 + [16] * 93
     assert len(saved) == 1 and saved[0][0] == "market_comparison"
     lines = saved[0][1]
     assert capsys.readouterr().out == "\n".join(lines) + "\n"
     summaries = [line for line in lines if line.startswith("Bartlett")]
     assert [line.split(":")[0] for line in summaries] == [
-        "Bartlett lags = 11 (primary)", "Bartlett lags = 0 (sensitivity)", "Bartlett lags = 44 (sensitivity)",
+        "Bartlett lags = 4 (primary)", "Bartlett lags = 0 (sensitivity)", "Bartlett lags = 16 (sensitivity)",
     ]
     rows = [line.split() for line in lines if len(line.split()) == 8 and line.split()[0].isdigit()]
     assert len(rows) == len({tuple(row[:2]) for row in rows}) == 93

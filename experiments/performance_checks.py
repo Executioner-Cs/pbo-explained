@@ -1,7 +1,7 @@
 """Paper revision (IMRaD): descriptive statistics, performance metrics, crisis stress tests, walk-forward test.
 
-Exploratory (designed before the run, no recorded predictions). Our choices: crisis windows below, Sortino with
-a zero target, walk-forward re-selection each January on all prior data from 1972 (at least 10 years).
+Exploratory (the walk-forward design was not recorded before its first run). Our choices: crisis windows below, Sortino with
+a zero target, walk-forward re-selection each January on all prior data from 1972 (about 9.5 years at the first selection).
 
 Run from the repository root:  .venv/bin/python experiments/performance_checks.py
 """
@@ -49,7 +49,7 @@ def main():
     lines.append(f"  49 industries {ind_dates[0]}-{ind_dates[-1]} ({len(industries)} days, demeaned): sd median "
                  f"{np.median(industries.std(axis=0)):.4f}, kurtosis median {np.median(kurtosis(industries, axis=0, fisher=False)):.1f}, "
                  f"lag-1 autocorrelation median {np.median(lag1):+.3f}")
-    lines.append(f"  rule 15/225 is long {np.mean(rule != 0) * 100:.0f}% of days")
+    lines.append(f"  rule 15/225 is long {np.mean(ma_crossover(prices, np.ones(len(prices)), *SELECTED, 0.0)[start:]) * 100:.0f}% of days")
 
     lines += ["", "2. Performance, 5 bps, full sample (total return = excess + risk-free)",
               f"  market:     {metrics(market, market + rate)}",

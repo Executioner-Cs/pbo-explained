@@ -5,3 +5,14 @@ papers/
 tmp/
 *.egg-info/
 data/
+
+# Local review archives and disposable build products.
+/docs/submission/review/
+/docs/pbo-paper.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.xdv
+*.synctex.gz

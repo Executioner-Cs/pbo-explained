@@ -547,3 +547,99 @@ divided by sqrt(5) is 0.016.
 - Original output preserved as results/performance_checks_v1_stitched_costs.txt (byte copy). Regenerated
   results/performance_checks.txt: walk-forward Sharpe 0.466 (was 0.467), Sortino 0.629 (0.630), difference
   -0.070 (-0.069), one-sided p 0.7428 (0.7417). Conclusion unchanged. The walk-forward remains exploratory.
+
+### Final paper and repository cleanup, 2026-11-13
+- Owner request: final submission paper, remove clutter. Owner chose to remove superseded drafts.
+- Removed: untracked drafts `docs/paper.md`, `docs/pbo-explained-report.pdf` (`docs/pbo-paper.pdf` was locked by
+  another program at the time); `tests/test_paper_snippets.py` (it only checked `docs/paper.md`);
+  `experiments/figures.py`, `experiments/figure_psr_ar1.py` and their outputs `results/*.png`, `results/fig5_growth.txt`;
+  disposable `tmp/`, caches and build logs. All removed tracked files remain in git history.
+- Before removing the figure scripts, their two curve computations moved into `experiments/submission_figures.py`;
+  the regenerated `results/psr_ar1_curve.txt` and `results/fig7_dsr_vs_n.txt` are byte-identical to the saved files.
+- `docs/submission/` reduced to the deliverables: environment lock, data-recovery record and full-text access record
+  folded into `reproducibility.md` and `literature-review.md`; internal review, follow-up plan and release status folded
+  into `submission-readiness.md`. Figure files renamed to match paper numbering.
+- Data: the industry ZIP's Internet Archive capture 20261113053423 was downloaded independently; SHA-256 and size
+  match the frozen file. Both inputs now have verified permanent copies.
+- Paper rewritten for clarity (same structure, numbers and equations): worked opening example, a table of what each
+  statistic answers, plain-prose results, credit to the 2026 papers in one place. One numeric fix: the GARCH
+  fourth-moment value 0.9225 had been printed as 0.923. Build: 28 pages (main text pp. 1-22), no undefined references or
+  overfull boxes. Suite: 279 passed. `docs/writeup.md`: one broken image link redirected to the new figure.
+
+### Review-stage checks: design recorded 2026-11-13 before the run (POST HOC)
+Internal adversarial review (docs/submission/review/) raised objections that need numbers. Reviewers had already computed
+versions of these in scratch copies, so none of this is blind or pre-specified; all of it is labelled post hoc. Script:
+experiments/review_checks.py, output results/review_checks.txt, root seed 20261116 (independent child streams).
+1. Period controls, corrected sub-period panels (split 1999-01-01, each period centred), T = 1248, PSR(0) > 0.95 on a
+   random industry: L = 1 (dependence removed), 4000 datasets per period; AR(5) residuals per period, L = 20, 4000.
+2. History-level uncertainty of the predicted rate: 200 moving-block (250-day) resamples of each period's history,
+   re-centred, predicted rate at L = 20; report 2.5/97.5 percentiles and share below 5%.
+3. Split-date sensitivity of the predicted rates: splits 1993, 1996, 2001, 2004.
+4. Holm over the eight PSR rows of the real-data table as one family (the stated "one family per table" rule).
+5. Case study, 5 bps, 11 Bartlett lags: OLS alpha on the market with HAC s.e. (pbo.psr_dsr.alpha_hac) for all 93
+   settings; Bonferroni over 93.
+6. DSR of the selected setting's return minus the market (benchmark = market), V from the 93 differences, N = 93.
+7. Signal built on the excess-return index cumprod(1 + Mkt-RF) instead of the total-return index.
+8. Studentized stationary-bootstrap p for 15/225 vs market (Ledoit-Wolf style), mean blocks 20 and 250, 1000 resamples.
+9. Walk-forward window diagnostic (hindsight): fixed 15/225 Sharpe over 1982-2026, median Sharpe of the 93 fixed
+   settings, and count above the market over the same days.
+No prediction recorded; these check robustness of claims already in the manuscript.
+10. (Added 2026-11-13 after item 5 showed alpha t 2.71 with Bonferroni conservative for 93 correlated rules, before
+    running it.) Hansen consistent SPA on the 93 market alphas: statistic max_k sqrt(T) alpha_k / omega_k, stationary
+    bootstrap mean block 20, 2000 resamples, same recentring as the Sharpe SPA. Post hoc.
+11. (Added 2026-11-13 after item 10 gave SPA p 0.045 on alphas, before running it.) Sensitivity of item 10: mean blocks
+    5, 60 and 250, and a second seed at mean block 20; 2000 resamples each. All values are reported whatever they show.
+    Item 10 itself was chosen after the alpha t-statistics were seen, so its p-value is post hoc in any case.
+
+
+### Resumed final submission review, 2026-11-13
+- Preserved the then-current 32-page manuscript, bibliography and brief with SHA-256 in
+  docs/submission/review/baseline/resumed-20261113. HEAD is 68882f58251dfa98adb0949c02f333d481ea2643 plus a dirty working tree;
+  existing staged deletions were not changed. No commit, stage, push or publication occurred.
+- RECOMPUTED: focused PSR/DSR tests 92 passed; full current suite 285 passed. A fresh isolated virtual environment installed
+  pinned requirements after an approved retry of a sandbox DNS failure; exact data hashes verified. Command logs and final
+  comparisons are in review/evidence and review/08-reproducibility-report.md.
+- Material interpretation correction: DSR of active returns SR(strategy-market) differs from standalone Sharpe difference
+  and constant-beta alpha. Updated abstract, table, discussion and brief; no numerical DSR calculation changed.
+- Qualified zero-Sharpe PSR statements as leading asymptotic results under CLT/consistency; documented alpha as a smooth
+  joint-moment functional with a conditional bootstrap, not a directly proved sample-mean theorem for this history.
+- New post hoc sensitivity: design recorded in review/evidence/delayed-alpha-design.md before run, no prediction required
+  under the owner's execution scope. Original 93 settings, 5bps, delay2, B2000, meanblock20, seed20261118. Raw observed and
+  bootstrap vectors preserved. RECOMPUTED: alpha SPA statistic2.43031646, p0.084 (168/2000), Monte Carlo SE0.00620258;
+  selected rule annual alpha3.0238%, HAC t2.5631, zero Bonferroni passes. Separate vector recomputation confirms p.
+  Baseline p0.045 is retained; abstract/conclusion now say alpha evidence is exploratory and sensitive to execution timing.
+- Corrected exposure reporting to use actual held positions rather than nonzero costed returns, and first walk-forward
+  training length documentation to about9.5years. This does not change the strategy's return calculation.
+- Source/roadmap conflict reconciled: old pending G6/data/literature items referred to earlier preparation, while concrete
+  outputs and later records existed. Historical sign-offs are retained; no external publication decision is inferred.
+- Assistance/author-responsibility disclosure follows the latest explicit transparency instruction. Internal automated
+  reviews are not independent human peer review. The final dimension assessment and limitations are recorded separately.
+
+- Final boundary audit (RECOMPUTED): 6 of 11 newly written SPA boundary/closed-form tests failed before the fix;
+  after explicit shape/count/finiteness/sample-size guards, all 11 passed. Valid-input calculations are unchanged.
+- The partial-block follow-up mismatch is now reconciled: original raw bytes retained as
+  results/french_followups_v1_partialblock.txt; current french_followups.txt regenerated from final code. Three
+  approximations move by0.0001 and two z values by0.01; all simulated counts are unchanged. Table and Figure4 updated.
+
+- Final evidence, RECOMPUTED: full current suite296passed (85.12s); fresh-interpreter final-worktree suite296passed
+  (49.25s). All13isolated experiment scripts exited0 and their regenerated text outputs match current files byte for
+  byte; all7reconstructed figures match rendered pixels and both curve text files match bytes. Reports/logs preserve
+  the distinction between isolated computation, same-machine fresh dependencies and prior independent archive retrieval.
+
+- Final artifact:34-page manuscript and one-page brief, rebuilt from source and visually checked through all pages
+  (unchanged pages verified by exact rendered equality, all changed pages reopened). No clipping, overlap, missing
+  glyphs or unresolved citations found; PDF remains untagged. Internal verdict: READY WITH DISCLOSED LIMITATIONS.
+  This is not external human peer review or authorization to publish. Final hashes and source snapshot are preserved
+  in docs/submission/review/final/.
+
+
+### Public working-paper release preparation, 2026-11-13
+- Owner requested a LinkedIn launch package, completed GitHub publication and public repository access. The public
+  release includes the paper, brief, source, figures, code, saved outputs and documented reproduction/limitations.
+- All315Git-history objects and the previously tracked files were screened for common credential signatures and
+  machine-path disclosures; none were detected. This bounded pattern scan is not a security certification. No source
+  paper PDFs or frozen dataset archives are tracked. The full internal review archive stays preserved locally.
+- Added public release verification, SHA-256 checksums, a standalone delayed-alpha experiment and its complete
+  output/raw vectors, plus deterministic CI. The internal sensitivity script and original audit records remain unchanged.
+- Public release tagging and upload are operational publication steps, not a change to the scientific findings or
+  an external peer-review claim. LinkedIn copy is prepared for the owner; no social post or tag notification is sent.

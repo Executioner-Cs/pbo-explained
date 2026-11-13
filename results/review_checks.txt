@@ -1,0 +1,53 @@
+Post hoc review checks (design: PROGRESS.md, 'Review-stage checks'). PSR rates: exact 95% CI.
+
+1. Period controls, split 19990101, T = 1248
+  1971-1998, L = 1 (dependence removed): 0.0505 [0.0439, 0.0577] (202/4000)
+  1971-1998, AR(5) residuals, L = 20: 0.0597 [0.0526, 0.0675] (239/4000)
+  1999-2026, L = 1 (dependence removed): 0.0467 [0.0404, 0.0538] (187/4000)
+  1999-2026, AR(5) residuals, L = 20: 0.0558 [0.0488, 0.0633] (223/4000)
+
+2. History-level uncertainty of the predicted rate at L = 20 (200 resamples, 250-day blocks)
+  1971-1998: point 0.0837; 2.5-97.5% [0.0753, 0.0907]; share below 0.05: 0.000
+  1999-2026: point 0.0394; 2.5-97.5% [0.0354, 0.0426]; share below 0.05: 1.000
+
+3. Split-date sensitivity of the predicted rate at L = 20
+  split 19930101: early 0.0896, late 0.0410
+  split 19960101: early 0.0870, late 0.0408
+  split 20010101: early 0.0781, late 0.0392
+  split 20040101: early 0.0731, late 0.0379
+
+4. Holm over the eight real-data PSR rows as one family
+  full L=1: 107/2000, exact p 0.4723, Holm p 0.9447
+  full L=5: 103/2000, exact p 0.7581, Holm p 0.9447
+  full L=20: 125/2000, exact p 0.0136, Holm p 0.0955
+  full L=60: 125/2000, exact p 0.0136, Holm p 0.0955
+  replicate L=20: 118/2000, exact p 0.0722, Holm p 0.2167
+  replicate L=60: 120/2000, exact p 0.0452, Holm p 0.1807
+  1971-1998: 167/2000, exact p 0.0000, Holm p 0.0000
+  1999-2026: 77/2000, exact p 0.0181, Holm p 0.0955
+
+5. Market alpha, OLS with Bartlett HAC (11 lags), 5 bps
+  15/225: beta 0.510, alpha 3.16%/yr, t 2.71, one-sided p 0.0033
+  largest t 2.71 ((15, 225)); t > 1.645: 33 of 93; t > 3.270 (Bonferroni): 0 of 93
+
+6. DSR with the market as benchmark (selected setting minus market; V from the 93 differences; N = 93)
+  DSR 0.0296
+
+7. Signal on the excess-return index cumprod(1 + Mkt-RF), 5 bps
+  best (5, 200): Sharpe 0.626; 39 of 93 above market; PBO 0.051; difference +0.168 (se 0.112, z 1.50); 15/225 Sharpe 0.467
+
+8. Studentized stationary bootstrap, 15/225 vs market, 1000 resamples (t observed 1.315, Normal p 0.0943)
+  mean block 20: p 0.105
+  mean block 250: p 0.099
+
+9. Walk-forward window (11276 days), fixed settings held throughout (hindsight diagnostic)
+  market 0.536; fixed 15/225 0.649; median of 93 0.546; 50 of 93 above the market
+
+10. Hansen consistent SPA on the 93 market alphas (stationary bootstrap, mean block 20, 2000 resamples)
+  statistic 2.689, p-value 0.0450
+
+11. Sensitivity of item 10 (2000 resamples each)
+  mean block 5: statistic 2.720, p-value 0.0460
+  mean block 60: statistic 2.499, p-value 0.0650
+  mean block 250: statistic 2.823, p-value 0.0350
+  mean block 20 (second seed): statistic 2.703, p-value 0.0470

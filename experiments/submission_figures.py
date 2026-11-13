@@ -1,10 +1,13 @@
-"""Vector figures for docs/submission/research-paper.tex, read only from saved results/ files.
+"""Vector figures for docs/submission/final-research-paper.tex. Output: docs/submission/figures/fig1..fig7.pdf.
 
-No simulation runs here and no file in results/ is written. Analytic curves are evaluated from documented
-expressions (PSEUDO Eq. 2.4 and exact Normal-maximum quadrature). Output: docs/submission/figures/*.pdf.
+No simulation runs here. Points come from saved results/ files. Two analytic curves are first written to results/
+and then plotted from the saved file: results/psr_ar1_curve.txt (large-sample PSR rate under AR(1)) and
+results/fig7_dsr_vs_n.txt (DSR of the selected rule against the assumed trial count). The best-of-N curves are
+evaluated directly (PSEUDO Eq. 2.4 and exact Normal-maximum quadrature).
 
 Run from the repository root, after the experiments:  .venv/bin/python experiments/submission_figures.py
 """
+import math
 import re
 from pathlib import Path
 
@@ -14,15 +17,43 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import integrate
-from scipy.stats import norm
+from scipy.stats import kurtosis, norm, skew
 
+from pbo import paper_values as pv
+from pbo.french import load_market
 from pbo.minbtl import expected_max_normal
-from pbo.reporting import read_results
+from pbo.psr_dsr import ar1_psr_false_positive, dsr
+from pbo.reporting import read_results, save_results
+from pbo.strategies import crossover_panel
+
+SETTINGS = [(f, s) for f in range(5, 55, 5) for s in range(25, 275, 25) if f < s]   # step 5 design
+SELECTED, COST = (15, 225), 0.0005                                                 # step 5 winner and main cost
+AR1_T, AR1_PHIS = 1248, np.round(np.arange(0, 0.3501, 0.005), 3)                    # calibration T; plotted grid
+
+
+def save_ar1_curve():
+    """Large-sample PSR(0) > 0.95 rate for a zero-Sharpe Gaussian AR(1) (Eq. 9 of the paper)."""
+    save_results("psr_ar1_curve", ["phi large_T_rate (our derivation, asymptotic approximation)"]
+                 + [f"{phi:.3f} {ar1_psr_false_positive(phi, AR1_T, pv.MINTRL_EX_CONFIDENCE)[1]:.6f}"
+                    for phi in AR1_PHIS])
+
+
+def save_dsr_curve():
+    """DSR of the selected setting at 5 bps as the assumed trial count N varies, V and moments held fixed."""
+    dates, mkt_rf, rf = load_market()
+    start, m = crossover_panel(np.cumprod(1 + mkt_rf + rf), mkt_rf, SETTINGS, COST, pv.PBO_S16)
+    x = m[:, SETTINGS.index(SELECTED)]
+    sharpes = m.mean(axis=0) / m.std(axis=0)
+    sr, v = sharpes[SETTINGS.index(SELECTED)], sharpes.var(ddof=1)
+    grid = np.unique(np.round(np.logspace(math.log10(2), 8, 60)))
+    save_results("fig7_dsr_vs_n", ["N DSR"] + [f"{n:.0f} {dsr(sr, len(x), skew(x), kurtosis(x, fisher=False), n, v):.6f}"
+                                               for n in grid])
 
 OUT = Path(__file__).resolve().parents[1] / "docs" / "submission" / "figures"
 BLUE, ORANGE, GREY, RED, GREEN = "#0072B2", "#E69F00", "#6b6b6b", "#D55E00", "#009E73"
 CI = r"\[([\d.]+), ([\d.]+)\] \((\d+)/(\d+)\)"
-plt.rcParams.update({"font.size": 9, "font.family": "serif", "axes.spines.top": False,
+plt.rcParams.update({"font.size": 10, "font.family": "serif", "mathtext.fontset": "dejavuserif",
+                     "legend.fontsize": 8.5, "axes.spines.top": False,
                      "axes.spines.right": False, "pdf.fonttype": 42, "axes.linewidth": 0.6,
                      "xtick.major.width": 0.6, "ytick.major.width": 0.6})
 
@@ -51,7 +82,7 @@ def fig_best_of_n():
     grid = np.unique(np.round(np.logspace(np.log10(2), np.log10(1000), 60)).astype(int))
     fig, ax = plt.subplots(figsize=(5.2, 2.9))
     ax.plot(grid, [expected_max_normal(n) / np.sqrt(years) for n in grid], color=GREY, ls="--", lw=1,
-            label="Eq. (4) approximation / $\\sqrt{5}$")
+            label="Normal-maximum approximation / $\\sqrt{5}$")
     ax.plot(grid, [exact_emax(n) / np.sqrt(years) for n in grid], color=BLUE, lw=1.2,
             label="exact $E[\\max]$ (quadrature) / $\\sqrt{5}$")
     for n, m, se in rows:
@@ -60,7 +91,7 @@ def fig_best_of_n():
     ax.set_xscale("log")
     ax.set_xlabel("number of zero-skill strategies $N$ (log scale)")
     ax.set_ylabel("expected best annual Sharpe")
-    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+    ax.legend(frameon=False, loc="lower right")
     save(fig, "fig1_best_of_n")
 
 
@@ -68,7 +99,7 @@ def fig_psr_ar1():
     cal, curve = read_results("calibration"), read_results("psr_ar1_curve")
     pts = np.array([[float(a), float(b)] for a, b in re.findall(r"^([\d.]+) ([\d.]+)$", curve, re.M)])
     fig, ax = plt.subplots(figsize=(5.2, 2.9))
-    ax.plot(pts[:, 0], 100 * pts[:, 1], color=BLUE, lw=1.2, label="large-sample rate, Eq. (9)")
+    ax.plot(pts[:, 0], 100 * pts[:, 1], color=BLUE, lw=1.2, label="large-sample rate $\\pi(F)$")
     for phi, head in ((0.0, "iid Normal"), (0.1, "AR(1) phi=0.1"), (0.3, "AR(1) phi=0.3")):
         block = cal.split(head)[1]
         r, lo, hi = rate(block, r"PSR\(0\) > 0.95 on a fixed strategy[^:]*: [\d.]+ " + CI)
@@ -80,9 +111,9 @@ def fig_psr_ar1():
     ax.plot([], [], "s", color=GREEN, ms=3.5, label="simulated, Newey-West variance, 7 lags")
     ax.axhline(5, color="black", ls=":", lw=0.8)
     ax.set_xlabel("AR(1) coefficient $\\phi$")
-    ax.set_ylabel("rate of PSR(0) $>$ 0.95, %")
-    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
-    save(fig, "fig2_psr_ar1")
+    ax.set_ylabel("false-pass rate, %")
+    ax.legend(frameon=False, loc="upper left")
+    save(fig, "fig3_psr_ar1")
 
 
 def fig_calibration():
@@ -107,12 +138,12 @@ def fig_calibration():
     for ax in (a, b):
         ax.axvline(5, color="black", ls=":", lw=0.8)
     a.set_yticks([-i for i in range(len(heads))], [l for _, l in heads])
-    a.set_xlabel("PSR(0) $>$ 0.95, fixed strategy, %")
-    b.set_xlabel("DSR $>$ 0.95, best of 100, %")
+    a.set_xlabel("PSR(0) $>$ 0.95, fixed strategy\nfalse-pass rate, %")
+    b.set_xlabel("DSR $>$ 0.95, best of 100\nfalse-pass rate, %")
     b.plot([], [], "o", color=BLUE, ms=3.5, label="$N$ = 100")
-    b.plot([], [], "s", color=ORANGE, ms=3.5, label="implied $N$, Eq. (6)")
-    b.legend(frameon=False, fontsize=7.5, loc="upper right")
-    save(fig, "fig3_calibration")
+    b.plot([], [], "s", color=ORANGE, ms=3.5, label="interpolated $\\hat N$")
+    b.legend(frameon=False, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2)
+    save(fig, "fig2_calibration")
 
 
 def fig_real_data():
@@ -120,10 +151,10 @@ def fig_real_data():
     pred = dict(re.findall(r"L = (\d+): predicted ([\d.]+)", follow))
     rows = [(f"full, $L$={L}", rate(boot, rf"Block length L = {L}\b[^\n]*\n  PSR[^\n]*? [\d.]+ " + CI), float(pred[str(L)]))
             for L in (1, 5, 20, 60)]
-    rows += [("full, $L$=20, rerun", rate(follow, r"L = 20: plain [\d.]+ " + CI), float(pred["20"])),
-             ("full, $L$=60, rerun", rate(follow, r"L = 60: plain [\d.]+ " + CI), float(pred["60"]))]
+    rows += [("full, $L$=20, replicate", rate(follow, r"L = 20: plain [\d.]+ " + CI), float(pred["20"])),
+             ("full, $L$=60, replicate", rate(follow, r"L = 60: plain [\d.]+ " + CI), float(pred["60"]))]
     for p in ("1971-1998", "1999-2026"):
-        rows.append((p + ", centred", rate(g6, p + r": simulated [\d.]+ " + CI),
+        rows.append((p.replace("-", "\u2013") + ", centred", rate(g6, p + r": simulated [\d.]+ " + CI),
                      float(re.search(p + r".*?approximation ([\d.]+);", g6).group(1))))
     fig, ax = plt.subplots(figsize=(6.0, 2.9))
     for i, (label, (r, lo, hi), approx) in enumerate(rows):
@@ -131,11 +162,11 @@ def fig_real_data():
                     capsize=3)
         ax.plot(i + 0.22, 100 * approx, "x", color=BLUE, ms=5)
     ax.plot([], [], "o", color=GREY, ms=4, label="simulated rate (exact 95% CI)")
-    ax.plot([], [], "x", color=BLUE, ms=5, label="autocorrelation approximation, Eqs. (9)-(10)")
+    ax.plot([], [], "x", color=BLUE, ms=5, label="approximation $\\pi(F^{\\mathrm{boot}})$")
     ax.axhline(5, color="black", ls=":", lw=0.8)
-    ax.set_xticks(range(len(rows)), [l for l, _, _ in rows], rotation=25, ha="right", fontsize=7.5)
-    ax.set_ylabel("rate of PSR(0) $>$ 0.95, %")
-    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+    ax.set_xticks(range(len(rows)), [l for l, _, _ in rows], rotation=25, ha="right", fontsize=8.5)
+    ax.set_ylabel("PSR(0) $>$ 0.95\nfalse-pass rate, %")
+    ax.legend(frameon=False, loc="upper left")
     save(fig, "fig4_real_data")
 
 
@@ -160,7 +191,7 @@ def fig_grid():
     i, j = np.searchsorted(fasts, 15), np.searchsorted(slows, 225)
     ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=False, ec="black", lw=1.2))
     cb = fig.colorbar(im, ax=ax, shrink=0.9)
-    cb.set_label("annual Sharpe minus market", fontsize=8)
+    cb.set_label("annual Sharpe minus market")
     ax.spines[:].set_visible(False)
     save(fig, "fig5_grid")
 
@@ -172,8 +203,8 @@ def fig_z():
     ax.plot(np.arange(1, len(z) + 1), z, "o", ms=3, color=BLUE)
     ax.axhline(norm.isf(0.05), color=GREY, ls="--", lw=0.9)
     ax.axhline(norm.isf(0.05 / len(z)), color=RED, ls="--", lw=0.9)
-    ax.text(len(z), norm.isf(0.05) + 0.08, "one-sided 5%, single test (1.645)", ha="right", fontsize=7.5, color=GREY)
-    ax.text(len(z), norm.isf(0.05 / len(z)) - 0.32, "Bonferroni over 93 (3.270)", ha="right", fontsize=7.5, color=RED)
+    ax.text(len(z), norm.isf(0.05) + 0.06, "one-sided 5%, single test (1.645)", ha="right", va="bottom", fontsize=8.5, color=GREY)
+    ax.text(len(z), norm.isf(0.05 / len(z)) - 0.06, "Bonferroni over 93 (3.270)", ha="right", va="top", fontsize=8.5, color=RED)
     ax.axhline(0, color="black", lw=0.6)
     ax.set_xlabel("setting, ranked by HAC $z$-statistic")
     ax.set_ylabel("$z$ = difference / s.e.")
@@ -187,13 +218,15 @@ def fig_dsr_n():
     ax.semilogx(pts[:, 0], pts[:, 1], color=BLUE, lw=1.2)
     ax.axhline(0.95, color="black", ls=":", lw=0.8)
     ax.axvline(93, color=GREY, ls="--", lw=0.8)
-    ax.text(110, 0.90, "$N$ = 93 enumerated", color=GREY, fontsize=7.5)
+    ax.text(110, 0.90, "$N$ = 93 enumerated", color=GREY, fontsize=8.5)
     ax.set_xlabel("assumed number of trials $N$ (log scale)"), ax.set_ylabel("DSR of setting 15/225")
     save(fig, "fig7_dsr_vs_n")
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    save_ar1_curve()
+    save_dsr_curve()
     for f in (fig_best_of_n, fig_psr_ar1, fig_calibration, fig_real_data, fig_grid, fig_z, fig_dsr_n):
         f()
     print(f"saved 7 figures to {OUT}")

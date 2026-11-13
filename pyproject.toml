@@ -17,7 +17,7 @@ dev = [
     "pytest>=9.2,<10",
 ]
 figure = [
-    "matplotlib>=3.11,<4",   # step 6 figure only (experiments/figure_psr_ar1.py)
+    "matplotlib>=3.11,<4",   # paper figures only (experiments/submission_figures.py)
 ]
 
 [tool.setuptools.packages.find]

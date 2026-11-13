@@ -36,7 +36,7 @@ def psr_z(sr, sr_star, n, skew=0.0, kurt=3.0):
 
 
 def psr(sr, sr_star, n, skew=0.0, kurt=3.0):
-    """Probability that the true SR exceeds sr_star, given n observations (SF Eq. 11, p.9)."""
+    """PSR of SF Eq. 11 (p.9): Phi of psr_z. An asymptotic Normal score, not a posterior probability of skill."""
     return norm.cdf(psr_z(sr, sr_star, n, skew, kurt))
 
 
@@ -195,8 +195,22 @@ def spa_sharpe(x, y, indices):
         xs, ys = x[rows], y[rows]
         return xs.mean(axis=0) / xs.std(axis=0) - ys.mean() / ys.std()
 
-    observed = differences(slice(None))
-    boot = np.array([differences(rows) for rows in indices])
+    return spa_pvalue(differences(slice(None)), np.array([differences(rows) for rows in indices]), t)
+
+
+def spa_pvalue(observed, boot, t):
+    """Hansen (2005) consistent SPA statistic and p-value from K observed performance differences and their B x K
+    bootstrap replicates of regular statistics with a valid joint bootstrap (e.g. Sharpe differences
+    or regression alphas under suitable stationarity, mixing and moment conditions; H0: none is positive)."""
+    observed, boot = np.asarray(observed, dtype=float), np.asarray(boot, dtype=float)
+    if observed.ndim != 1 or boot.ndim != 2 or boot.shape[1] != len(observed):
+        raise ValueError("observed must have length K and boot shape B x K")
+    if len(observed) < 1 or boot.shape[0] < 2:
+        raise ValueError("SPA needs at least one statistic and at least two bootstrap replicates")
+    if not (np.isfinite(observed).all() and np.isfinite(boot).all()):
+        raise ValueError("observed statistics and bootstrap replicates must be finite")
+    if isinstance(t, (bool, np.bool_)) or not isinstance(t, (int, np.integer)) or t < 3:
+        raise ValueError("t must be an integer at least 3 for the SPA log-log threshold")
     omega = math.sqrt(t) * boot.std(axis=0)           # bootstrap sd of sqrt(t) times each difference
     if not (np.isfinite(omega).all() and (omega > 0).all()):
         raise ValueError("bootstrap standard deviations must be positive and finite")
@@ -206,3 +220,29 @@ def spa_sharpe(x, y, indices):
     centre = np.where(standardized >= -math.sqrt(2 * math.log(math.log(t))), observed, 0.0)
     null = np.maximum((math.sqrt(t) * (boot - centre) / omega).max(axis=1), 0.0)
     return statistic, float(np.mean(null >= statistic))
+
+
+def alpha_hac(y, x, lags):
+    """OLS of y on a constant and x; returns (alpha, beta, Bartlett HAC standard error of alpha).
+
+    Sandwich (X'X)^-1 S (X'X)^-1 with S = sum_h w_h sum_t u_t u_(t-h)', u_t = X_t e_t, w_h = 1 - h/(lags + 1)
+    (Newey and West 1987). Used to test a strategy's market-adjusted return. No small-sample scaling (our choice).
+    """
+    y, x = np.asarray(y, dtype=float), np.asarray(x, dtype=float)
+    if y.ndim != 1 or y.shape != x.shape or not (np.isfinite(y).all() and np.isfinite(x).all()):
+        raise ValueError("y and x must be finite 1-D arrays of the same length")
+    t = len(y)
+    if isinstance(lags, (bool, np.bool_)) or not isinstance(lags, (int, np.integer)) or not 0 <= lags < t:
+        raise ValueError("lags must be an integer, at least 0 and below the series length")
+    if np.ptp(x) == 0:
+        raise ValueError("x is constant, so alpha and beta are not separately identified")
+    design = np.column_stack([np.ones(t), x])
+    coef, *_ = np.linalg.lstsq(design, y, rcond=None)
+    u = design * (y - design @ coef)[:, None]
+    meat = u.T @ u
+    for h in range(1, lags + 1):
+        g = u[h:].T @ u[:-h]
+        meat += (1 - h / (lags + 1)) * (g + g.T)
+    bread = np.linalg.inv(design.T @ design)
+    var = bread @ meat @ bread
+    return coef[0], coef[1], math.sqrt(max(var[0, 0], 0.0))

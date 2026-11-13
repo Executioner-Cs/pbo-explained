@@ -213,7 +213,7 @@ datasets each) with exact 95% intervals (RECOMPUTED, results/calibration.txt). D
 1 - Phi(Phi^-1(0.95)/sqrt(F)), an asymptotic approximation (RECOMPUTED, results/psr_ar1_curve.txt). Dotted line:
 nominal 5%.
 
-![Figure 1](../results/figure1_psr_ar1.png)
+Figure 1 is now [docs/submission/figures/fig3_psr_ar1.pdf](submission/figures/fig3_psr_ar1.pdf) (same curve and simulated points, with Newey-West points added; the original PNG was retired with its script on 2026-11-13).
 
 ### 4.4 The serial-correlation claim in its literature
 Bailey and Lopez de Prado (2012, p.4; also p.8) state, citing Opdyke (2007), that their results hold for

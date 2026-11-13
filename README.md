@@ -1,98 +1,83 @@
-# Backtest-overfitting statistics: replication and extensions
+# Backtest overfitting: when a good backtest meets a harder question
 
-This repository reproduces published Sharpe-ratio, PSR, DSR, MinTRL, MinBTL and CSCV/PBO calculations,
-then examines their behavior in controlled simulations and an idealized market-factor strategy search.
-It accompanies the [working manuscript](docs/writeup.md), revised after a
-[publication audit](docs/publication_audit.md) and a [panel review](docs/peer_review_round1.md). It does not
-establish an executable trading strategy or certify future performance.
+A computational replication and empirical stress test of the statistics used to screen backtests: the probabilistic
+and deflated Sharpe ratios (PSR, DSR), minimum track record and backtest lengths (MinTRL, MinBTL), and the probability
+of backtest overfitting (PBO) estimated by combinatorially symmetric cross-validation (CSCV).
 
-## Start here
+**Question.** Are these statistics reliable decision rules when returns are serially dependent, heavy tailed or
+correlated, and does a historically superior trading rule survive a selection-aware test against the market?
 
-- [One-page research summary](docs/submission/research-summary.pdf).
-- [Working paper](docs/submission/research-paper.pdf), [source](docs/submission/research-paper.tex), and [reproduction instructions](docs/submission/reproducibility.md).
-- [Earlier manuscript](docs/writeup.md): project-level questions, methods, results and correction history.
-- [Progress and corrections](PROGRESS.md): recorded designs, predictions, results and withdrawn claims.
-- [Roadmap](docs/TODO.md): review and sign-off state.
-- [Methods supplement](docs/research_methods.md): estimands, assumptions, generators, nulls and inference conventions.
-- [Data manifest](docs/data_manifest.md): required snapshots, hashes, transformations and reproduction limits.
-- [Paper checks](docs/paper_check.md): page-level verification record; constants live in `src/pbo/paper_values.py`.
+**Short answer (RECOMPUTED).** In the stated zero-mean industry bootstraps, uncorrected PSR passes
+8.35% of early-period samples and 3.85% of late-period samples against a nominal 5%; only the early excess survives
+the stated Holm adjustment. The operational 2014 DSR is strongly conservative under independent zero-skill search.
+The best of 93 moving-average settings has zero-skill DSR 0.998, but its standalone Sharpe advantage is not established
+(SPA p = 0.504). Baseline market-alpha evidence is exploratory and borderline; an extra day of execution delay gives
+alpha SPA p = 0.084. DSR of active returns, standalone Sharpe differences and market alpha answer different questions.
+No implementable trading edge or new statistic is claimed.
 
-The original G6 period comparison did not impose zero means within each period. Its calibration interpretation
-is withdrawn. `experiments/g6_corrected.py` centers each period separately (design committed before the run,
-d78d8e8) and wrote `results/g6_corrected.txt`; the original output is retained in `results/french_followups.txt`.
+## Read first
 
-## Environment and tests
+[![Tests](https://github.com/Executioner-Cs/pbo-explained/actions/workflows/tests.yml/badge.svg)](https://github.com/Executioner-Cs/pbo-explained/actions/workflows/tests.yml)
 
-Use Python 3.13 and run commands from the repository root. Create a virtual environment for the platform
-you are using; a Windows environment and a WSL environment are not interchangeable.
+**Working paper · 34 pages · one-page brief · Python 3.13 · MIT code licence**
 
-Windows PowerShell:
 
-```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m pytest -q
+1. [One-page research brief](docs/submission/research-brief.pdf)
+2. [Working paper](docs/submission/final-research-paper.pdf) (LaTeX source and bibliography in the same folder)
+3. [How to reproduce every number](docs/submission/reproducibility.md)
+
+Supporting documents in [`docs/submission/`](docs/submission/): claim-by-claim [evidence audit](docs/submission/evidence-audit.md),
+[literature review](docs/submission/literature-review.md), [limitations and open issues](docs/submission/limitations-and-open-issues.md),
+and [release verification](docs/submission/release-verification.md). The full internal review archive stays local; public methods, correction history, code and numerical outputs are included.
+
+## Repository map
+
+```text
+src/pbo/        Library: Sharpe, PSR/MinTRL/DSR, CSCV/PBO, MinBTL, data loaders, scenarios, strategies
+tests/          Unit tests; expectations come only from paper values or closed forms
+experiments/    One script per analysis; each writes one file in results/
+results/        Saved outputs quoted in the paper (kept as originally produced; corrections are recorded)
+docs/submission The paper and its companion documents
+docs/           Research records: methods supplement, data manifest, paper checks, audits, roadmap
+PROGRESS.md     Chronological log of designs, predictions, results and corrections
 ```
 
-WSL/Linux:
+## Setup and tests
+
+Python 3.13, from the repository root. A Windows and a WSL virtual environment are not interchangeable.
 
 ```bash
 python3.13 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m pytest -q
+.venv/bin/python -m pytest -q          # 296 tests
 ```
 
-`requirements.txt` pins the recorded top-level package versions and installs this package in editable mode.
-It is not a complete transitive dependency lock. For a development install using the declared version ranges,
-use the same virtual-environment interpreter with `-m pip install -e ".[dev,figure]"`; the `figure` extra installs
-matplotlib for the plot script.
+On Windows use `py -3.13 -m venv .venv` and `.\.venv\Scripts\python.exe`.
 
-The normal test command does not run the experiment scripts. Most tests use synthetic inputs. Frozen-data
-tests are skipped when their ignored snapshots are absent, so passing tests alone do not establish that the
-real-data experiments can be reproduced.
+## Data
 
-## Data and reproduction
+The real-data analyses use two Kenneth R. French Data Library archives, identified by SHA-256 in `src/pbo/french.py`.
+Both exact files are preserved by the Internet Archive; [reproducibility.md](docs/submission/reproducibility.md) gives the
+download commands. The loader refuses any file with a different hash. Without the archives, the data-dependent tests
+skip, so passing tests alone do not reproduce the real-data results.
 
-**Both frozen inputs now have independently hash-verified timestamped recovery URLs.** Use the capture URLs
-in the [data manifest](docs/data_manifest.md) and [machine-readable recovery record](docs/submission/data-recovery.json)
-before running the loaders. The default loader still downloads the rolling provider URL if a ZIP is absent and
-refuses a mismatching hash; do not disable that check. Data remain outside Git and are not licensed under MIT.
-Archival availability is not a guarantee of perpetual access or permission to redistribute the data.
+## What is included
 
-After provisioning both archives, this check reads and validates them without writing any experiment result:
+- Library implementations, paper-value provenance and deterministic tests.
+- Fixed-seed synthetic studies, corrected industry bootstraps and a 93-rule market case study.
+- Saved results and original withdrawn/superseded outputs, with the correction history explained.
+- LaTeX, bibliography, vector figures, the full paper and the one-page brief.
+- [Added delayed-execution alpha experiment](experiments/delayed_alpha.py), its [design](docs/submission/evidence/delayed-alpha-design.md), [output](results/delayed_alpha.txt) and [raw bootstrap vectors](results/delayed_alpha_bootstrap.npz).
 
-```bash
-.venv/bin/python -c "from pbo.french import load_returns, load_market; load_returns(); load_market(); print('Frozen snapshots validated')"
-```
+The local full suite passes 296 tests with the frozen archives present. Hosted CI skips the two archive-dependent checks when those inputs are absent; a green badge alone does not reproduce the empirical findings.
 
-On Windows, replace `.venv/bin/python` with `.\.venv\Scripts\python.exe`. If an archive is absent, the loader
-attempts a download; the check is not an offline acquisition procedure.
+## Regenerating results
 
-## Experiment entry points
+Each script overwrites its own result file, for example `.venv/bin/python experiments/calibration.py`. Run them in a copy
+of the repository if you want to compare with the saved outputs; the procedure and expected run times are in
+[reproducibility.md](docs/submission/reproducibility.md). `experiments/submission_figures.py` rebuilds the paper's figures
+from the saved results.
 
-Saved outputs are in `results/`. The following scripts are regeneration commands, not part of the test suite.
-Except for the separately named corrected G6 output, **each script overwrites its named result files**.
-Preserve the published originals and follow the recorded correction design before rerunning an affected analysis.
-Run scripts directly, for example `.venv/bin/python experiments/best_of_n.py`; some older scripts use sibling
-imports and are not supported through `python -m experiments...`.
+## License
 
-| Script in `experiments/` | Output in `results/` | Inputs |
-|---|---|---|
-| `best_of_n.py` | `best_of_n.txt` | Seeded synthetic returns |
-| `dsr_false_positives.py` | `dsr_false_positives.txt` | Seeded synthetic returns |
-| `null_checks.py` | `null_checks.txt` | Seeded synthetic returns |
-| `calibration.py` | `calibration.txt` | Seeded synthetic scenarios |
-| `french_bootstrap.py` | `french_bootstrap.txt` | Frozen industry archive |
-| `french_followups.py` | `french_followups.txt` | Frozen industry archive and bootstrap output; includes historical, uncentered G6 |
-| `g6_corrected.py` | `g6_corrected.txt` | Frozen industry archive; uses `french_bootstrap.py` and `french_followups.py` settings |
-| `manuscript_numbers.py` | `manuscript_numbers.txt` | Saved results and frozen factor archive; derived statistics only |
-| `ma_crossover.py` | `ma_crossover.txt` | Frozen factor archive |
-| `market_comparison.py` | `market_comparison.txt` | Frozen factor archive |
-| `figure_psr_ar1.py` | `psr_ar1_curve.txt`, `figure1_psr_ar1.png` | Saved calibration output and analytic approximation |
-
-Calibration and bootstrap scripts perform many simulations and can take minutes. Settings, fixed seeds and
-process-pool entry points are defined in the scripts. Monte Carlo intervals quantify simulation uncertainty
-conditional on each specified data-generating process; they do not remove model or historical-sample uncertainty.
-
-The code is released under the [MIT License](LICENSE). Data access and redistribution conditions are separate
-from the software license and are not granted by it.
+Code: [MIT](LICENSE). The data are not covered by this licence and are not redistributed here.

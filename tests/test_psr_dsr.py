@@ -5,7 +5,7 @@ import pytest
 from scipy.stats import norm
 
 from pbo import paper_values as pv
-from pbo.psr_dsr import (ar1_psr_false_positive, dsr, implied_n, min_trl, newey_west_factor, psr,
+from pbo.psr_dsr import (alpha_hac, ar1_psr_false_positive, dsr, implied_n, min_trl, newey_west_factor, psr,
                          psr_false_positive, psr_long_run, psr_z, sharpe_diff, sr0)
 
 REL = 1e-12             # our choice: exact identities, so only float rounding is allowed
@@ -428,3 +428,60 @@ def test_spa_sharpe_detects_a_large_edge():
     idx = np.array([stationary_bootstrap_indices(rng, 2000, 2000, 10) for _ in range(300)])
     stat, p = spa_sharpe(x, y, idx)
     assert stat > 3 and p < 0.01
+
+
+def _orthogonal_design(t):
+    """x alternates -1, +1; residuals e repeat (1, 1, -1, -1), orthogonal to 1 and x; y = 2 + 3x + e."""
+    x = np.tile([-1.0, 1.0], t // 2)
+    e = np.tile([1.0, 1.0, -1.0, -1.0], t // 4)
+    return 2 + 3 * x + e, x
+
+
+def test_alpha_hac_zero_lags_closed_form():
+    # (X'X)^-1 = I/T, so var(alpha) = sum(e^2)/T^2 = 1/T with lags = 0.
+    y, x = _orthogonal_design(8)
+    alpha, beta, se = alpha_hac(y, x, 0)
+    assert (alpha, beta) == pytest.approx((2.0, 3.0))
+    assert se == pytest.approx(1 / math.sqrt(8))
+
+
+def test_alpha_hac_one_lag_closed_form():
+    # Bartlett weight 1/2 at lag 1: S00 = sum e^2 + sum_t e_t e_(t-1) = 8 + 1 = 9, so se = 3/8.
+    y, x = _orthogonal_design(8)
+    assert alpha_hac(y, x, 1)[2] == pytest.approx(3 / 8)
+
+
+@pytest.mark.parametrize("y, x, lags", [
+    (np.ones(5), np.ones(4), 0),                      # lengths differ
+    (np.r_[np.nan, 1.0, 2.0], np.arange(3.0), 0),     # non-finite
+    (np.arange(5.0), np.arange(5.0), 5),              # lags not below length
+    (np.arange(5.0), np.ones(5), 0),                  # x constant: alpha not identified
+])
+def test_alpha_hac_rejects_bad_input(y, x, lags):
+    with pytest.raises(ValueError):
+        alpha_hac(y, x, lags)
+
+
+def test_spa_pvalue_closed_form_two_draws():
+    from pbo.psr_dsr import spa_pvalue
+    # One observed difference 1, bootstrap [0, 2]: sd=1, statistic=1.
+    # Centered bootstrap statistics floored at zero are [0, 1], so exactly half exceed the observed value.
+    assert spa_pvalue([1.0], [[0.0], [2.0]], 100) == pytest.approx((1.0, 0.5))
+
+
+@pytest.mark.parametrize("observed, boot, t", [
+    ([np.nan], [[0.0], [2.0]], 100),
+    ([np.inf], [[0.0], [2.0]], 100),
+    ([1.0], [[0.0], [np.nan]], 100),
+    ([], np.empty((2, 0)), 100),
+    ([1.0], [[0.0]], 100),
+    ([1.0], np.empty((0, 1)), 100),
+    ([1.0], [[0.0], [2.0]], True),
+    ([1.0], [[0.0], [2.0]], 2),
+    ([1.0], [[0.0], [2.0]], 3.5),
+    ([1.0], [[0.0], [2.0]], np.nan),
+])
+def test_spa_pvalue_rejects_undefined_inputs(observed, boot, t):
+    from pbo.psr_dsr import spa_pvalue
+    with pytest.raises(ValueError, match="finite|at least|integer"):
+        spa_pvalue(observed, boot, t)

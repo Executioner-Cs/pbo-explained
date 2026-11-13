@@ -1,0 +1,50 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{amsmath,booktabs}
+\usepackage{microtype}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue!50!black]{hyperref}
+\hypersetup{pdftitle={Backtest Overfitting Statistics under Serial Dependence and Benchmark Choice: Research Brief},pdfauthor={Mayank Khandelwal},pdflang={en-GB}}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=1.2em}
+\pagestyle{plain}
+
+\begin{document}
+\begin{center}
+{\large\textbf{Backtest Overfitting Statistics under Serial Dependence and Benchmark Choice}}\\[2pt]
+{A Replication and Empirical Stress Test: research brief}\\[2pt]
+{\small Mayank Khandelwal \quad Working paper, 13 November 2026 \quad Not peer reviewed}
+\end{center}
+
+\paragraph{Question.} The probabilistic and deflated Sharpe ratios (PSR, DSR) and the probability of backtest overfitting (PBO) are often used as hurdles: ``DSR $>0.95$'', ``PBO $\le0.05$''. How often do these hurdles pass strategies with no edge when returns are serially dependent, heavy tailed or correlated, and does a historical search winner survive tests that allow for both the search and the benchmark? Motivating fact: the best of 100 zero-skill strategies over five years of daily data shows an annualized Sharpe ratio of about 1.12, which looks like a $t$-statistic of 2.5.
+
+\paragraph{What was done.} A test-driven reimplementation of PSR, MinTRL, DSR, MinBTL and CSCV/PBO that reproduces numerical examples from the four source papers, with page-level provenance. Zero-edge Monte Carlo (2000 datasets per cell) under IID, AR(1), GARCH(1,1), Student-$t$ and equicorrelated returns. A circular block bootstrap of daily Kenneth French 49-industry returns, 1971--2026, with every mean set to zero. A search over 93 moving-average rules on the Fama--French market factor (1972--2026, 5 bps per position change), judged against zero skill and against the market by Sharpe ratio and by alpha, with Bonferroni and Hansen's SPA test.
+
+\paragraph{Main findings.}
+\begin{enumerate}
+\item \textbf{PSR's false-pass rate on real data depends on the period.} With each industry centred, uncorrected PSR(0)$\,>0.95$ passes 8.35\% [7.17, 9.65] of resampled 1971--1998 histories and 3.85\% [3.05, 4.79] of 1999--2026 histories, against a nominal 5\%. The first excess survives a Holm adjustment over all eight real-data tests; the second is suggestive (Holm $p=0.096$). Post hoc controls point to dependence as the cause: with dependence removed the rates are 5.05\% and 4.67\%, and the predicted late-period rate stays below 5\% across 200 resampled histories and split dates from 1993 to 2004. Mean lag-1 autocorrelation fell from $+0.157$ to $-0.026$.
+\item \textbf{The verdict on a search winner depends on the benchmark.} The selected rule (15/225) has Sharpe 0.588 against the market's 0.458. Against zero skill its DSR is 0.998; DSR of active returns (rule minus market) is 0.030. This tests a different estimand from the difference of standalone Sharpes or alpha. Its Sharpe advantage, $+0.130$ (s.e.\ 0.099), is not significant (one-sided $p=0.094$; SPA $p=0.504$), and the test has power 0.37 against a difference of that size. Its market alpha is 3.16\% a year ($t=2.71$, beta 0.51): it fails Bonferroni over 93 rules, but a post hoc SPA test on the 93 alphas gives $p=0.035$--0.065 across block lengths, so the baseline alpha evidence is borderline. One extra day of delay gives alpha SPA $p=0.084$ (Monte Carlo s.e. 0.0062), failing the 5\% test. PBO is 0.208, but it falls to 0.051 and the winner changes when the signal is computed from the excess-return index instead.
+\item \textbf{The 2014 DSR under correlated searches.} It passes at most 0.70\% of zero-skill winners except under strong cross-strategy correlation (2.60\% at $\rho=0.7$; 5.05\% with the interpolated $\hat N=30.7$), because the cross-trial variance misses the common component.
+\end{enumerate}
+
+\paragraph{Confirmations of published results.} Uncorrected PSR passes 11.85\% [10.47, 13.35] of zero-Sharpe AR(1) series with $\phi=0.3$, against 11.37\% from $F=(1+\phi)/(1-\phi)$ (Lo 2002; Ledoit and Wolf 2008; L\'opez de Prado, Lipton and Zoonekynd 2026); a 7-lag Newey--West variance leaves 7.10\%. The 2014 DSR passes 0.05\% of IID zero-skill winners, in line with the conservatism L\'opez de Prado and Porcu (2026) establish for its location-only form. Mean PBO stays near one half in zero-edge designs, as symmetry leads one to expect.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Decision & Statistic & A pass does not establish \\
+\midrule
+One pre-specified Sharpe above a hurdle & PSR & Robustness to serial dependence \\
+Search winner better than best of $N$ noise trials & DSR (2014) & A 5\% error rate; skill against a benchmark \\
+Rankings persist out of sample & PBO & A probability of future loss \\
+Move capital from benchmark to strategy & none of these & Needs search-aware Sharpe and alpha tests with power \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Status of evidence.} Designs and most predictions were recorded before each run; the hypotheses as stated, the evidence rule, the sub-period design and its prediction, the robustness checks and the review-stage checks (including the alpha tests) were fixed after earlier results were known and are labelled post hoc. A first sub-period run was withdrawn after its failed check revealed a centring error, and a walk-forward cost error was corrected (Sharpe 0.467 to 0.466). An internal adversarial review changed the case-study conclusion for market-adjusted return from ``no evidence'' to ``borderline''.
+
+\paragraph{Main limitations.} One data vendor and one market; PSR tested only at $\mathrm{SR}^\ast=0$; fixed bootstrap block lengths; idealized same-close execution on a research portfolio; HAC assumptions unverified; over 100 tests with Holm adjustment only within tables; PBO power not measured; the 2026 DSR variants not tested.
+
+\end{document}

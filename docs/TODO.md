@@ -163,8 +163,15 @@ The earlier sign-offs above record the historical review; they do not close the 
 - [x] Add synthetic G6 orchestration coverage; full suite 253 passed (2026-11-12)
 - [x] Draft abstract, contribution boundaries, formal methods, version-specific references and data manifest
 - [ ] Owner authorizes the pre-run correction/design commit
-- [ ] Run corrected G6 and preserve original outputs
-- [ ] Compare corrected results with the recorded prediction and update the manuscript
-- [ ] Establish durable acquisition of the exact frozen input archives
-- [ ] Complete current-literature assessment, including the later DSR framework beyond its abstract
+- [x] Run corrected G6 and preserve original outputs (results/g6_corrected.txt; original french_followups retained)
+- [x] Compare corrected results with the recorded prediction and update the manuscript (PROGRESS corrected-G6 record; prediction not blind)
+- [x] Establish documented acquisition of the exact frozen input archives (hash-matching Internet Archive retrieval in R05; future service availability not guaranteed)
+- [x] Complete scoped current-literature assessment beyond abstract (versioned 2026 PDFs recorded in literature-review.md; supplementary proofs not independently checked)
 - [ ] Repeat manuscript review and record a new publication decision
+
+## Submission review continuation, 2026-11-13
+
+The owner's execution request authorizes internal review, corrections, reruns and PDF preparation. It does not authorize a
+commit or publication. Earlier pending pre-run-commit items are historical: design commit d78d8e8 and corrected output are
+recorded in PROGRESS; no new owner sign-off is inferred. Final review and readiness evidence are in docs/submission/review/.
+The immutable release/commit and any external submission remain owner decisions. No new research roadmap step is begun.

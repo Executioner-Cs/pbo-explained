@@ -28,7 +28,7 @@ from french_bootstrap import LEVEL, S, T
 from pbo import scenarios
 from pbo.cscv import cscv
 from pbo.french import ar_residuals, load_returns
-from pbo.psr_dsr import newey_west_factor, psr, psr_false_positive, psr_long_run
+from pbo.psr_dsr import newey_west_factor, psr_false_positive, psr_long_run, psr_z
 from pbo.reporting import format_mean, format_rate, mean_with_se, read_results, save_results
 
 # Settings
@@ -58,7 +58,7 @@ def describe_lag1(label, x):
 
 def predicted_rate(x, block):
     """Average over industries of the PSR(0) false-positive rate predicted for a block bootstrap of x."""
-    return psr_false_positive(scenarios.block_bootstrap_factor(x, block), T, LEVEL).mean()
+    return psr_false_positive(scenarios.block_bootstrap_factor(x, block, T), T, LEVEL).mean()
 
 
 def observed_rates():
@@ -81,9 +81,9 @@ def psr_flags(panel, block, seed):
     for _ in range(DATASETS):
         r = scenarios.block_bootstrap(data_rng, panel, T, block)
         x = r[:, target_rng.integers(r.shape[1])]
-        value = psr(x.mean() / x.std(), 0.0, T, skew(x), kurtosis(x, fisher=False))
-        flags.append(value > LEVEL)
-        nw_flags.append(psr_long_run(value, newey_west_factor(x, NW_LAGS)) > LEVEL)
+        z = psr_z(x.mean() / x.std(), 0.0, T, skew(x), kurtosis(x, fisher=False))
+        flags.append(psr_long_run(z, 1.0) > LEVEL)
+        nw_flags.append(psr_long_run(z, newey_west_factor(x, NW_LAGS)) > LEVEL)
     return flags, nw_flags
 
 

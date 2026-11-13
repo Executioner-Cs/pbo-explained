@@ -192,3 +192,8 @@ def test_cscv_matches_plain_algorithm_with_ties(s):
     base = rng.standard_normal((s * 6, 8))
     m = np.column_stack([base, base[:, :3]])      # strategies 8-10 copy strategies 0-2
     assert np.allclose(cscv(m, s)[1], plain_algorithm_2_3(m, s), rtol=0, atol=1e-12)
+
+
+def test_cscv_rejects_too_few_rows():
+    with pytest.raises(ValueError):
+        cscv(np.empty((0, 2)), 2)

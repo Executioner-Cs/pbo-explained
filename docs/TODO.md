@@ -154,3 +154,17 @@ Formulas named here are UNVERIFIED until checked on the paper page.
 - [x] 6.5 Reviewer reads it (docs/writeup.md and Figure 1 reviewed 2026-11-12)
 - [x] 6.6 Final pass on UNVERIFIED list (docs/writeup.md, "Unresolved claims")
 - [x] 6.7 Mayo decides on git commit and push (local commit approved; push deferred, 2026-11-12)
+
+
+## Post-publication corrections and research-paper preparation
+The earlier sign-offs above record the historical review; they do not close the audit findings.
+- [x] Record the publication audit and withdraw unsupported interpretations in the manuscript
+- [x] Review numerical fixes, corrected G6 design, centering invariant and original seed identities
+- [x] Add synthetic G6 orchestration coverage; full suite 253 passed (2026-11-12)
+- [x] Draft abstract, contribution boundaries, formal methods, version-specific references and data manifest
+- [ ] Owner authorizes the pre-run correction/design commit
+- [ ] Run corrected G6 and preserve original outputs
+- [ ] Compare corrected results with the recorded prediction and update the manuscript
+- [ ] Establish durable acquisition of the exact frozen input archives
+- [ ] Complete current-literature assessment, including the later DSR framework beyond its abstract
+- [ ] Repeat manuscript review and record a new publication decision

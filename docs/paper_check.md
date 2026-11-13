@@ -55,3 +55,19 @@ All match the code and docs:
 Cited in step 4 text but checked in extracted text only (not as images): PBO 4, 14, 21, 22, 23; SF 15.
 
 Re-run this check whenever paper_values.py changes.
+
+
+## Publication source review (text inspection, 2026-11-12)
+This is not a repeat of the rendered-page constant audit above. No numerical paper constant was changed.
+- Version-specific bibliography: PBO February 27, 2015 author copy; SF July 2012 author copy; DSR July 31,
+  2014 author copy; PSEUDO April 1, 2014 author copy. Journal and working-copy pagination are distinguished
+  in docs/writeup.md. Publisher/author bibliographic records were consulted for the reference metadata.
+- Lo (2002), The Statistics of Sharpe Ratios: journal PDF hosted at
+  https://traders.berkeley.edu/papers/The-Statistics-of-Sharpe-Ratios.pdf , text of printed pp.39-40 and
+  Appendix A p.47 read for non-IID inference, time aggregation, and GMM/Newey-West context. Earlier notes
+  saying the paper was unavailable describe the earlier source set.
+- Ledoit-Wolf: January 2008 Zurich Working Paper 320, printed pp.4-6; text inspection. Journal-PDF retrieval
+  was not completed. The distinction remains explicit in the manuscript.
+- Lopez de Prado and Porcu, The Deflated Sharpe Ratio: A Unified Framework for Search-Adjusted Performance
+  Inference: author publication metadata and SSRN 7198158 indexed abstract consulted. Full proofs and
+  alternative implementations were not assessed. The original 2014 formula remains the experimental target.

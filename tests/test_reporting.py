@@ -31,3 +31,9 @@ def test_formatters():
     assert format_rate([False] * 10) == "0.0000 [0.0000, 0.3085] (0/10)"
     assert format_mean([1.0, 2.0, 3.0]) == "2.000 +/- 0.577"
 
+
+
+@pytest.mark.parametrize("flags", [[0.3, 2.0], [0, 1, 1]])
+def test_rate_with_ci_needs_booleans(flags):
+    with pytest.raises(ValueError):
+        rate_with_ci(flags)

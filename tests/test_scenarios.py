@@ -180,19 +180,26 @@ def test_block_bootstrap_factor_closed_forms():
     # block 1: independent days, F = 1. Alternating +1, -1: circular rho_1 = -1, so with block 2
     # F = 1 + 2 (1/2)(-1) = 0 (every block of two sums to zero, so the bootstrap mean never moves).
     x = np.tile([1.0, -1.0], 50)[:, None]
-    assert block_bootstrap_factor(x, 1) == pytest.approx([1.0])
-    assert block_bootstrap_factor(x, 2) == pytest.approx([0.0], abs=1e-12)
+    assert block_bootstrap_factor(x, 1, 100) == pytest.approx([1.0])
+    assert block_bootstrap_factor(x, 2, 100) == pytest.approx([0.0], abs=1e-12)
+
+
+def test_block_bootstrap_factor_partial_final_block():
+    # Source (+1, -1), block 2, t = 3: one full block (sum 0) plus one day drawn uniformly (+1 or -1).
+    # The mean is that day / 3, variance 1/9; independent days give var(x)/3 = 1/3. Factor = (1/9)/(1/3) = 1/3.
+    x = np.array([[1.0], [-1.0]])
+    assert block_bootstrap_factor(x, 2, 3) == pytest.approx([1 / 3])
 
 
 def test_block_bootstrap_factor_rejects_constant_column():
     with pytest.raises(ValueError):
-        block_bootstrap_factor(np.ones((10, 1)), 2)
+        block_bootstrap_factor(np.ones((10, 1)), 2, 10)
 
 
 def test_block_bootstrap_factor_matches_bootstrap_variance():
-    # Monte Carlo check of the formula on an AR(1) column, t a multiple of block (where it is exact)
+    # Monte Carlo check of the formula on an AR(1) column, t = 405 not a multiple of block 10 (partial last block)
     x = ar1(np.random.default_rng(SEED), 400, 1, 0.5)
     rng = np.random.default_rng(SEED + 1)
-    means = [block_bootstrap(rng, x, 400, 10).mean() for _ in range(20_000)]
-    expected = block_bootstrap_factor(x, 10)[0] * x.var() / 400
+    means = [block_bootstrap(rng, x, 405, 10).mean() for _ in range(20_000)]
+    expected = block_bootstrap_factor(x, 10, 405)[0] * x.var() / 405
     assert np.var(means) == pytest.approx(expected, rel=0.05)   # our choice: 5%, MC SE of a variance is about 1%

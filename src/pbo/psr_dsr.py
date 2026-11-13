@@ -19,18 +19,25 @@ def _check_finite(**values):
 
 def _sr_variance_factor(sr, skew, kurt):
     # 1 - skew*SR + (kurt - 1)/4 * SR^2. Equals Eq. 8's 1 + SR^2/2 - skew*SR + (kurt - 3)/4 * SR^2 (SF p.8).
+    if kurt < (1 + skew**2) * (1 - 1e-12):        # relative tolerance for roundoff in sample moments only
+        raise ValueError("raw kurtosis must be at least 1 + skew^2 (Pearson's inequality)")
     v = 1 - skew * sr + (kurt - 1) / 4 * sr**2
     if v <= 0:
         raise ValueError("1 - skew*SR + (kurt-1)/4*SR^2 must be positive")
     return v
 
 
-def psr(sr, sr_star, n, skew=0.0, kurt=3.0):
-    """Probability that the true SR exceeds sr_star, given n observations (SF Eq. 11, p.9)."""
+def psr_z(sr, sr_star, n, skew=0.0, kurt=3.0):
+    """The statistic inside SF Eq. 11 (p.9): PSR = Z[psr_z]."""
     _check_finite(sr=sr, sr_star=sr_star, n=n, skew=skew, kurt=kurt)
     if n < 2:
         raise ValueError("n must be at least 2: Eq. 11 uses sqrt(n - 1)")
-    return norm.cdf((sr - sr_star) * math.sqrt(n - 1) / math.sqrt(_sr_variance_factor(sr, skew, kurt)))
+    return (sr - sr_star) * math.sqrt(n - 1) / math.sqrt(_sr_variance_factor(sr, skew, kurt))
+
+
+def psr(sr, sr_star, n, skew=0.0, kurt=3.0):
+    """Probability that the true SR exceeds sr_star, given n observations (SF Eq. 11, p.9)."""
+    return norm.cdf(psr_z(sr, sr_star, n, skew, kurt))
 
 
 def min_trl(sr, sr_star, alpha, skew=0.0, kurt=3.0):
@@ -60,7 +67,8 @@ def dsr(sr, t, skew, kurt, n_trials, var_trials):
 def psr_false_positive(factor, t, level):
     """Rate of PSR(0) > level at true SR = 0 when the variance of the sample mean is factor times its IID value.
 
-    Our derivation: sqrt(t) SR -> N(0, factor), and SF Eq. 11 uses sqrt(t - 1) with factor 1.
+    Our derivation, an approximation: sqrt(t) SR is treated as N(0, factor), and SF Eq. 11 uses sqrt(t - 1) with
+    factor 1. It does not integrate over the random sample standard deviation, skewness or kurtosis.
     """
     return 1 - norm.cdf(norm.ppf(level) / np.sqrt(np.asarray(factor) * (t - 1) / t))
 
@@ -69,8 +77,8 @@ def ar1_psr_false_positive(phi, t, level):
     """Rate of PSR(0) > level for a zero-Sharpe stationary Gaussian AR(1). Our derivation, not a paper result.
 
     At SR = 0, sqrt(t) * SR -> N(0, F) with F the long-run variance factor of the sample mean, while SF Eq. 11
-    assumes F = 1. Returns (finite-t rate with F_t = 1 + 2 sum_{k<t} (1 - k/t) phi^k and Eq. 11's sqrt(t - 1),
-    large-t rate with F = (1 + phi)/(1 - phi)).
+    assumes F = 1. Returns (finite-t approximation with F_t = 1 + 2 sum_{k<t} (1 - k/t) phi^k and Eq. 11's
+    sqrt(t - 1), not an exact finite-sample law; large-t rate with F = (1 + phi)/(1 - phi)).
     """
     k = np.arange(1, t)
     f_t = 1 + 2 * np.sum((1 - k / t) * phi**k)
@@ -84,7 +92,10 @@ def newey_west_factor(x, lags):
 
     F = 1 + 2 sum_{h=1}^{lags} (1 - h/(lags + 1)) rho_h. Our correction for serial correlation; not in SF.
     """
-    d = np.asarray(x, dtype=float) - np.mean(x)
+    x = np.asarray(x, dtype=float)
+    if x.ndim != 1 or not np.isfinite(x).all():
+        raise ValueError("x must be a finite 1-D array")
+    d = x - x.mean()
     if not 0 <= lags < len(d):
         raise ValueError("lags must be at least 0 and below the series length")
     var = d @ d
@@ -93,11 +104,15 @@ def newey_west_factor(x, lags):
     return 1 + 2 * sum((1 - h / (lags + 1)) * (d[:-h] @ d[h:]) / var for h in range(1, lags + 1))
 
 
-def psr_long_run(psr_value, factor):
-    """PSR with its variance multiplied by factor (our correction; tested at SR* = 0 only)."""
+def psr_long_run(z, factor):
+    """PSR with its variance multiplied by factor, from z = psr_z(...) (our correction; tested at SR* = 0 only).
+
+    Takes z, not the PSR probability: a probability that has rounded to 1 cannot be corrected.
+    """
+    _check_finite(z=z, factor=factor)
     if not factor > 0:
         raise ValueError("factor must be positive")
-    return norm.cdf(norm.ppf(psr_value) / math.sqrt(factor))
+    return norm.cdf(z / math.sqrt(factor))
 
 
 def implied_n(corr):
@@ -113,6 +128,10 @@ def implied_n(corr):
         raise ValueError("corr has NaN or inf (a strategy with zero variance gives NaN)")
     if not np.allclose(np.diag(c), 1.0):
         raise ValueError("corr must have a unit diagonal (a covariance matrix was passed?)")
+    if not np.allclose(c, c.T) or np.abs(c).max() > 1 + 1e-12:
+        raise ValueError("corr must be symmetric with entries between -1 and 1")
+    if np.linalg.eigvalsh(c).min() < -1e-10 * m:   # singular is fine (duplicate strategies); negative is impossible
+        raise ValueError("corr must be positive semidefinite")
     rho = (c.sum() - m) / (m * (m - 1))
     # p.14: Eq. 9 runs from rho = 0 (N = M) to rho = 1 (N = 1). Our choice (the paper does not clamp): a slightly
     # negative sample rho is noise around 0 for unrelated strategies, so it counts as 0 (N = M), never above M.

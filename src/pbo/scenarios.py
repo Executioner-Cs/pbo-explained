@@ -89,17 +89,25 @@ def block_bootstrap(rng, x, t, block):
     return x[rows.ravel()[:t]]
 
 
-def block_bootstrap_factor(x, block):
-    """Per column: variance of the circular block bootstrap mean divided by its value for independent days.
+def block_bootstrap_factor(x, block, t):
+    """Per column: variance of the mean of a t-day circular block bootstrap divided by its value for independent days.
 
-    Our derivation: F = 1 + 2 sum_{h=1}^{block-1} (1 - h/block) rho_h, with rho_h the circular lag-h
-    autocorrelation of the column. Exact when t is a multiple of block. block = 1 gives F = 1.
+    Our derivation: a block of length L has F_L = 1 + 2 sum_{h=1}^{L-1} (1 - h/L) rho_h, with rho_h the circular
+    lag-h autocorrelation of the column. Blocks are independent, so with t = qL + r (q full blocks, a last block of
+    r days) F = (q L F_L + r F_r) / t, exact for this bootstrap. block = 1 gives F = 1.
     """
+    if t < 1 or block < 1:
+        raise ValueError("t and block must be at least 1")
     d = np.asarray(x, dtype=float) - np.mean(x, axis=0)
     var = (d * d).sum(axis=0)
     if np.any(var == 0):
         raise ValueError("a column has zero variance")
-    f = np.ones(d.shape[1])
-    for h in range(1, block):
-        f += 2 * (1 - h / block) * (d * np.roll(d, -h, axis=0)).sum(axis=0) / var
-    return f
+
+    def factor(length):
+        f = np.ones(d.shape[1])
+        for h in range(1, length):
+            f += 2 * (1 - h / length) * (d * np.roll(d, -h, axis=0)).sum(axis=0) / var
+        return f
+
+    q, r = divmod(t, block)
+    return (q * block * factor(block) + (r * factor(r) if r else 0)) / t

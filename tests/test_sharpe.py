@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -46,3 +48,9 @@ def test_invalid_returns_raise(returns):
 def test_invalid_periods_raise(periods):
     with pytest.raises(ValueError, match="periods_per_year"):
         sharpe(alternating(2), periods)
+
+
+@pytest.mark.parametrize("scale", [1e-200, 1e200])
+def test_sharpe_extreme_scales(scale):
+    # [1, 2, 3]: mean 2, variance 2/3 (ddof 0), so SR = 2 / sqrt(2/3) * sqrt(250) = sqrt(1500) at any scale.
+    assert sharpe(np.array([1.0, 2.0, 3.0]) * scale, 250) == pytest.approx(math.sqrt(1500))

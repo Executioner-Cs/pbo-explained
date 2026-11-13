@@ -28,7 +28,11 @@ def cscv(m, s):
     if not np.isfinite(m).all():
         raise ValueError("M has NaN or inf; argmax and ranks would silently misplace them")
     pairs = splits(s)                                 # checks S is positive and even
+    if m.ndim != 2:
+        raise ValueError("M must be a T x N matrix")
     t, n = m.shape
+    if t < s:
+        raise ValueError("T must be at least S")
     if n < 2:
         raise ValueError("CSCV needs at least 2 strategies")
     if t % s:

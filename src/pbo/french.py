@@ -98,3 +98,16 @@ def load_market():
     if (values <= -99.99).any() or not np.isfinite(values).all():
         raise ValueError("unexpected window or missing values in the factors file")
     return dates, mkt_rf, rf
+
+
+def demean_by_period(dates, data, split):
+    """(early, late): rows before / from split, each column demeaned within its own period (zero-edge null per period)."""
+    dates, data, split = np.asarray(dates, dtype=float), np.asarray(data, dtype=float), np.asarray(split, dtype=float)
+    if dates.ndim != 1 or data.ndim != 2 or data.shape[0] != dates.size or data.shape[1] == 0:
+        raise ValueError("dates must be 1-D with one entry per row of a nonempty-column data panel")
+    if split.ndim != 0 or not (np.isfinite(dates).all() and np.isfinite(data).all() and np.isfinite(split)):
+        raise ValueError("dates, data and scalar split must be finite")
+    early, late = data[dates < split], data[dates >= split]
+    if len(early) == 0 or len(late) == 0:
+        raise ValueError("split must leave rows on both sides")
+    return early - early.mean(axis=0), late - late.mean(axis=0)

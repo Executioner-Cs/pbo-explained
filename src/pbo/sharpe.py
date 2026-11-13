@@ -16,4 +16,5 @@ def sharpe(returns, periods_per_year):
         raise ValueError("periods_per_year must be a positive finite scalar")
     if np.ptp(r) == 0:
         raise ValueError("returns have zero variance; Sharpe is undefined")
+    r = np.ldexp(r, -np.frexp(np.abs(r).max())[1])  # exact power-of-two rescale: squares cannot overflow or underflow
     return r.mean() / r.std(ddof=0) * np.sqrt(periods_per_year)

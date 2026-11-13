@@ -30,7 +30,7 @@
 - Suite: 61 passed.
 - Signed off by Mayo 2026-11-10 (TODO 2.4, 2.21). Packet: docs/review_step2.md.
 
-## Step 4 (done; signed off by Mayo 2026-11-12)
+## Step 4 (signed off by Mayo 2026-11-12; reopened 2026-11-12 for corrections, see "Corrections after the publication audit")
 Question: how PSR, DSR and PBO behave, with zero true edge, when one IID Normal assumption breaks: (a) synthetic
 scenarios, (b) real dependence from the French 49 industries. Each design and prediction was written here before its
 run (the order is recorded by the author, not by git; from step 5 on, designs are committed before running).
@@ -65,10 +65,11 @@ PBO by none, stays near 0.5.
 | Correlated rho 0.7 | 4.95% | 5.20% | 2.60% | 5.05% (N 30.7) | 0.504 |
 PBO SE 0.010 to 0.011; PBO <= 0.05 accepted a zero-edge set at most 1 time in 200. GARCH paired PBO (original minus
 shuffled): -0.002 +/- 0.004, +0.009 +/- 0.004.
-Verdicts: all three predictions right. Both AR(1) cells exclude 5%; every other PSR CI contains 5%. The DSR rate rises
+Verdicts: all three predictions right. Both AR(1) cells exclude 5% [corrected: under the decision rule phi 0.1 is
+suggestive only, see Corrections]; every other PSR CI contains 5%. The DSR rate rises
 with correlation; 5.05% at rho 0.7 is where that curve crosses 5%, not a calibrated level. Implied N (DSR Eq. 9) was
-chosen as lead row after these results were seen; both rows are reported. The estimate 30.715 matches the true 30.7
-although T < M(M-1)/2 (1248 < 4950), the regime DSR p.15 calls "pointless". Why correlation moves DSR (our reasoning):
+chosen as lead row after these results were seen; both rows are reported. The estimate 30.715 matches the true 30.7 [corrected:
+the Eq. 9 interpolation at the generating correlation, not a true count, see Corrections] although T < M(M-1)/2 (1248 < 4950), the regime DSR p.15 calls "pointless". Why correlation moves DSR (our reasoning):
 correlated Sharpes cluster, so V and SR0 = sqrt(V) E[max] shrink while the best strategy keeps the common noise.
 G1 (our correction, design recorded before the run): PSR with a Newey-West long-run variance (7 lags, rule of thumb,
 our choice) contains 5% in 8 of 9 cells; at AR(1) phi 0.3 it cuts 11.85% to 7.10%, not to 5%.
@@ -154,6 +155,7 @@ paired difference with fixed and random block positions, 400 datasets; G1 Newey-
 | G2: AR(5) residuals | L = 20: 5.30%; L = 60: 5.35% (residual lag-1 autocorrelation 0.000) | contains 5%; consistent with a contribution from linear autocorrelation |
 | G6: 1971-98 | simulated 10.45% [9.1, 11.9] vs predicted 8.38%, z = +3.34 | prediction too low |
 | G6: 1999-2026 | simulated 3.30% [2.6, 4.2] vs predicted 3.94%, z = -1.47 | agree |
+[Corrected: the G6 rows are not zero-edge rates, see Corrections; G6 reading withdrawn.]
 Reading (ours): PSR's real-data error depends on the period, about 10% in 1971-98 and about 3% after 1999, and it is
 not detected as an excess over 5% in the full-window AR(5) residual (G2) and Newey-West (G1) checks.
 Intervals containing 5% do not establish that either adjustment fully corrects the error.
@@ -168,6 +170,47 @@ changed. Mean PBO; z against the IID row:
 | 2 | 0.189 | 0.391 (z +3.55) | 0.189 (z +0.00) |
 | 3 | 0.026 | 0.098 (z +3.62) | 0.019 (z -0.77) |
 Verdict: power kept under GARCH; under AR(1) phi 0.3 PBO detects a real edge less well at SR 2 and 3.
+[Corrected: only mean PBO was measured, not power; the SR label is a fixed daily ratio, see Corrections.]
+
+### Corrections after the publication audit (docs/publication_audit.md), 2026-11-12
+The text above is kept as recorded; these entries correct it. Original result files are unchanged.
+- G6 (high): the panel is demeaned over the full window, then each period was resampled without re-centring. In
+  each period industry means are not zero: 36 of 49 positive in 1971-98, 13 of 49 in 1999-2026 (RECOMPUTED,
+  frozen snapshot). The G6 rates mix mean differences with dependence; the zero-edge reading is withdrawn.
+- G4: only mean PBO was measured, not the rate of PBO <= 0.05 or of selecting the planted strategy, so nothing
+  about decision power follows. The edge is a fixed daily mean/SD ratio times sqrt(250); at phi 0.3 the label
+  "SR 2" has a 250-day summed-return Sharpe of 1.470 (finite 250-day variance factor 1.852, RECOMPUTED).
+- Decision rule applied to 4(a): phi 0.3 PSR z = 14.1, detected. phi 0.1: z = 2.77, exact two-sided binomial
+  p = 0.0075, Bonferroni over nine scenarios p = 0.068: suggestive, not detected (RECOMPUTED). The rule was
+  completed after the 4(b) run.
+- Implied N 30.7 at rho 0.7 is DSR Eq. 9 (an interpolation, DSR p.14) at the generating correlation, not a known
+  true count; recovering 30.715 checks the estimate of that formula, not the DSR correction.
+- G2 changes marginal moments and cross-industry relationships, not only autocorrelation: a robustness check,
+  not an isolated intervention. B (weekly) changes horizon to 6,240 days, marginal moments and uses arithmetic
+  five-day sums: not only frequency.
+- Library fixes, tests first (244 tests pass): psr_long_run now corrects the z-statistic (psr_z), not a rounded
+  probability; sharpe rescales exactly before squaring; implied_n rejects asymmetric, out-of-range or not positive
+  semidefinite matrices (singular allowed); newey_west_factor rejects non-finite input; PSR rejects raw kurtosis
+  below 1 + skew^2, with a 1e-12 relative tolerance so two-point sample moments on the bound pass; cscv rejects T < S;
+  rate_with_ci needs booleans; block_bootstrap_factor weights a partial final block, F = (q L F_L + r F_r) / t.
+  All saved results reproduce unchanged with the fixed code (reruns diffed against git) except
+  results/french_followups.txt, kept as the original: the partial-block weighting moves three predictions by
+  0.0001 (L = 60: 0.0538 -> 0.0539, z +1.72 -> +1.71; G6 early 0.0838 -> 0.0837, z +3.34 -> +3.35).
+- Not changed: experiments/french_followups.py still imports settings from experiments/french_bootstrap.py; it runs
+  as documented, as a script.
+
+### Corrected G6 design, recorded 2026-11-12 before any run
+- Same frozen dates, split at 1999-01-01, T = 1248, L = 20, 2000 datasets per period, random target industry, the
+  original G6 seeds: children 9 and 10 of SeedSequence(20261113).spawn(11), through the same psr_flags function.
+  Each industry demeaned within each period (pbo.french.demean_by_period) before resampling;
+  tests/test_french_loader.py checks every period column of the frozen panel has mean 0, and the runner checks it
+  again before simulating. Runner: experiments/g6_corrected.py.
+- Approximation: psr_false_positive with the partial-block factor (block_bootstrap_factor(x, 20, 1248)), averaged
+  over industries; labelled an approximation. Report raw counts, exact 95% CIs, deviation of each approximation
+  from its simulated rate, and whether it lies inside the simulated interval. No tolerance for "close".
+- New result file results/g6_corrected.txt, linked to the original; results/french_followups.txt not overwritten.
+- Prediction (proposed by the reviewer, forwarded by Mayo; UNVERIFIED, from the autocorrelation approximation, not
+  a result): 1971-98 about 8.4%, above 5%; 1999-2026 about 3.9%, below 5%.
 
 ### Limits (for step 6)
 Only SR* = 0 was tested (PSR at SR* > 0 and MinTRL under GARCH untested). 4(b) intervals are Monte Carlo error given
@@ -403,3 +446,26 @@ divided by sqrt(5) is 0.016.
   expression to its six-decimal precision. The plotted simulation points and intervals match calibration.txt.
 - TODO 6.5 complete. The stated unresolved pooled calculation and working-paper provenance limits remain explicit.
   No commit or push was performed. TODO 6.7 remains the owner's decision.
+
+
+### Research-paper preparation and corrected G6 pre-run review, 2026-11-12
+- The revised Pearson tolerance and positive-semidefinite correlation check were reviewed. Singular valid
+  correlations remain allowed; N=1 is still outside the DSR expected-maximum approximation's supported domain.
+- Added public shape/finite validation for demean_by_period and a synthetic runner regression covering centered
+  inputs, exact original child seed states 9/10, output counts/CIs, and correction-only persistence.
+  RECOMPUTED: 97 focused tests and 253 full-suite tests pass. No real corrected G6 simulation ran.
+- docs/writeup.md now includes an abstract, an explicit contribution statement, scoped related work, and full
+  version-specific references. docs/research_methods.md specifies estimands, null populations, generators,
+  inference, conventions and limitations. README.md and docs/data_manifest.md explain setup/data requirements
+  without claiming that immutable snapshot acquisition has been solved.
+- New source access: Lo (2002) journal PDF hosted at Berkeley, text of printed pp.39-40 and Appendix A p.47,
+  was inspected. Earlier notes that Lo was unavailable are historical; current source access is different.
+- Current-literature scope: Lopez de Prado and Porcu's 2026 DSR framework was located. Its indexed abstract
+  and author publication record were inspected, not its full proofs. The manuscript explicitly evaluates the
+  2014 Eq.2 construction and Eq.9 interpolation, not all later DSR variants. No new-statistic or first-discovery
+  claim is made, and no complete systematic novelty search is claimed.
+- Corrected G6 design is ready for its required pre-run commit; neither commit nor execution occurred.
+  Its result file remains absent. Existing saved result contents were not changed in this review.
+- Remaining gates: owner-approved pre-run commit, corrected G6 result/review, durable exact-data acquisition,
+  complete current-literature assessment, and renewed manuscript/publication review. Older sign-offs do not
+  constitute approval of the corrected research paper.

@@ -30,7 +30,7 @@ from scipy.stats import kurtosis, skew
 from pbo import paper_values as pv
 from pbo import scenarios
 from pbo.cscv import cscv
-from pbo.psr_dsr import ar1_psr_false_positive, dsr, implied_n, newey_west_factor, psr, psr_long_run
+from pbo.psr_dsr import ar1_psr_false_positive, dsr, implied_n, newey_west_factor, psr_long_run, psr_z
 from pbo.reporting import format_mean, format_rate, save_results
 
 # Settings
@@ -76,9 +76,9 @@ def run_scenario(index, seed):
 
         # PSR on a fixed strategy that was not selected
         fixed = returns[:, 0]
-        psr_value = psr(sharpes[0], 0.0, T, skew(fixed), kurtosis(fixed, fisher=False))
-        psr_flags.append(psr_value > LEVEL)
-        psr_nw_flags.append(psr_long_run(psr_value, newey_west_factor(fixed, NW_LAGS)) > LEVEL)   # G1
+        z = psr_z(sharpes[0], 0.0, T, skew(fixed), kurtosis(fixed, fisher=False))
+        psr_flags.append(psr_long_run(z, 1.0) > LEVEL)                                     # plain PSR
+        psr_nw_flags.append(psr_long_run(z, newey_west_factor(fixed, NW_LAGS)) > LEVEL)   # G1
 
         # DSR on the best strategy
         best = int(np.argmax(sharpes))

@@ -12,7 +12,10 @@ def rate_with_ci(flags):
 
     Returns (rate, hits, total, low, high). Exact intervals stay valid for rates near 0 or 1.
     """
-    hits, total = int(np.sum(flags)), len(flags)
+    flags = np.asarray(flags)
+    if flags.dtype != bool or flags.size == 0:
+        raise ValueError("flags must be a nonempty sequence of booleans")
+    hits, total = int(flags.sum()), flags.size
     ci = binomtest(hits, total).proportion_ci()
     return hits / total, hits, total, ci.low, ci.high
 

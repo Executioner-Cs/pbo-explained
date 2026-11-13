@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 from pbo import paper_values as pv
 from pbo.psr_dsr import (ar1_psr_false_positive, dsr, implied_n, min_trl, newey_west_factor, psr,
-                         psr_false_positive, psr_long_run, sharpe_diff, sr0)
+                         psr_false_positive, psr_long_run, psr_z, sharpe_diff, sr0)
 
 REL = 1e-12             # our choice: exact identities, so only float rounding is allowed
 WEEKS = 52              # calendar convention for the SF p.11 weekly example (paper does not print it)
@@ -217,8 +217,20 @@ def test_newey_west_factor_closed_forms():
 
 
 def test_psr_long_run_factor_one_is_unchanged():
-    assert psr_long_run(0.97, 1.0) == pytest.approx(0.97)
-    assert psr_long_run(0.5, 4.0) == pytest.approx(0.5)      # Z[0 / 2] = 1/2
+    assert psr_long_run(norm.ppf(0.97), 1.0) == pytest.approx(0.97)
+    assert psr_long_run(0.0, 4.0) == pytest.approx(0.5)      # Z[0 / 2] = 1/2
+
+
+def test_psr_is_normal_cdf_of_psr_z():
+    assert psr(0.1, 0.02, 60, -0.5, 4.0) == pytest.approx(norm.cdf(psr_z(0.1, 0.02, 60, -0.5, 4.0)))
+
+
+def test_psr_long_run_keeps_the_finite_z():
+    # Audit probe: PSR itself rounds to 1 here, so the correction must start from z, not from the probability.
+    # Normal moments: z = SR sqrt(n - 1) / sqrt(1 + SR^2/2); the correction divides z by sqrt(F) = 10.
+    z = psr_z(0.1, 0.0, 10000)
+    assert psr(0.1, 0.0, 10000) == 1.0
+    assert psr_long_run(z, 100) == pytest.approx(norm.cdf(0.1 * math.sqrt(9999) / math.sqrt(1 + 0.1 ** 2 / 2) / 10))
 
 
 def test_long_run_helpers_reject_bad_input():
@@ -227,7 +239,9 @@ def test_long_run_helpers_reject_bad_input():
     with pytest.raises(ValueError):
         newey_west_factor(np.ones(5), 1)                # zero variance
     with pytest.raises(ValueError):
-        psr_long_run(0.9, 0.0)                          # factor must be positive
+        psr_long_run(1.0, 0.0)                          # factor must be positive
+    with pytest.raises(ValueError):
+        psr_long_run(math.inf, 1.0)                     # z must be finite
 
 
 def test_ar1_rate_converges_to_limit():
@@ -331,3 +345,39 @@ def test_sharpe_diff_positive_scaling_cancels_uncertainty():
 def test_sharpe_diff_invariant_to_extreme_positive_scale(scale):
     x, y = np.array([1., 2., 4., 8.]), np.array([2., 0., 5., 1.])
     assert sharpe_diff(x * scale, y * scale, 1) == pytest.approx(sharpe_diff(x, y, 1))
+
+
+@pytest.mark.parametrize("matrix", [
+    [[1.0, 2.0], [2.0, 1.0]],      # correlation above 1
+    [[1.0, 0.1], [0.9, 1.0]],      # not symmetric
+    [[1.0, 0.9, 0.9], [0.9, 1.0, -0.9], [0.9, -0.9, 1.0]],   # symmetric, bounded, smallest eigenvalue -0.8
+])
+def test_implied_n_rejects_impossible_correlation_matrices(matrix):
+    with pytest.raises(ValueError):
+        implied_n(matrix)
+
+
+def test_newey_west_rejects_nonfinite_series():
+    with pytest.raises(ValueError):
+        newey_west_factor([1.0, np.nan, 3.0], 1)
+
+
+@pytest.mark.parametrize("skew, kurt", [(0.0, -3.0), (2.0, 4.0)])
+def test_psr_rejects_impossible_raw_kurtosis(skew, kurt):
+    # Any distribution has raw kurtosis >= 1 + skew^2 (Pearson's inequality).
+    with pytest.raises(ValueError):
+        psr(0.01, 0.0, 100, skew, kurt)
+
+
+def test_implied_n_accepts_singular_correlation():
+    # Two identical strategies: correlation 1 everywhere, singular but valid; Eq. 9 gives N = 1.
+    assert implied_n([[1.0, 1.0], [1.0, 1.0]]) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("sample", [[0, 0, 0, 0, 1], [0, 1], [0, 0, 1]])
+def test_psr_accepts_two_point_sample_moments(sample):
+    # Two-point samples sit on the Pearson bound kurt = 1 + skew^2; scipy's moments can fall just below it by roundoff
+    # ([0, 0, 0, 0, 1]: skew 1.5, kurt 3.2499999999999996).
+    from scipy.stats import kurtosis, skew
+    x = np.array(sample, dtype=float)
+    psr(0.01, 0.0, 100, skew(x), kurtosis(x, fisher=False))
